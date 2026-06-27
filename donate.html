@@ -55,7 +55,8 @@
       transition:border-color .2s, transform .2s;
     }
     .epay-item:hover { border-color:var(--vest); transform:translateY(-2px); }
-    .epay-item .ei-icon { font-size:1.5rem; margin-bottom:6px; }
+    .epay-item .ei-icon { font-size:1.5rem; margin-bottom:6px; height:44px; display:flex; align-items:center; justify-content:center; }
+    .epay-item .ei-icon img { height:40px; width:auto; max-width:84px; object-fit:contain; }
     .epay-note {
       margin-top:20px; background:var(--vest-pale);
       border-radius:12px; padding:14px 18px;
@@ -213,23 +214,23 @@
           <p>掃描 QR Code<br>或選擇支付方式</p>
         </div>
         <div>
-          <p class="epay-methods-title">支援以下電子支付方式</p>
+          <p class="epay-methods-title">請以你要的支付程式掃描（支援以下電子支付方式）</p>
           <div class="epay-grid">
-            <div class="epay-item"><div class="ei-icon">💳</div>全支付</div>
-            <div class="epay-item"><div class="ei-icon">💳</div>icash PAY</div>
-            <div class="epay-item"><div class="ei-icon">💳</div>iPASS MONEY</div>
-            <div class="epay-item"><div class="ei-icon">💳</div>全盈+PAY</div>
-            <div class="epay-item"><div class="ei-icon">💳</div>GAMA Pay</div>
-            <div class="epay-item"><div class="ei-icon">💳</div>ezPay</div>
-            <div class="epay-item"><div class="ei-icon">💳</div>振裕付</div>
-            <div class="epay-item"><div class="ei-icon">💳</div>街口支付</div>
-            <div class="epay-item"><div class="ei-icon">💳</div>台灣Pay</div>
-            <div class="epay-item"><div class="ei-icon">💳</div>歐付寶</div>
+            <div class="epay-item"><div class="ei-icon"><img src="all%20pay.png" alt="全支付"></div>全支付</div>
+            <div class="epay-item"><div class="ei-icon"><img src="icash%20pay.png" alt="icash PAY"></div>icash PAY</div>
+            <div class="epay-item"><div class="ei-icon"><img src="ipass%20money.png" alt="iPASS MONEY"></div>iPASS MONEY</div>
+            <div class="epay-item"><div class="ei-icon"><img src="+pay.jpg" alt="全盈+PAY"></div>全盈+PAY</div>
+            <div class="epay-item"><div class="ei-icon"><img src="gama%20pay.png" alt="GAMA Pay"></div>GAMA Pay</div>
+            <div class="epay-item"><div class="ei-icon"><img src="ezpay.png" alt="ezPay"></div>ezPay</div>
+            <div class="epay-item"><div class="ei-icon"><img src="easy%20wallet.jpg" alt="振裕付"></div>振裕付</div>
+            <div class="epay-item"><div class="ei-icon"><img src="jkopay.png" alt="街口支付"></div>街口支付</div>
+            <div class="epay-item"><div class="ei-icon"><img src="TWpay.jpg" alt="台灣Pay"></div>台灣Pay</div>
+            <div class="epay-item"><div class="ei-icon"><img src="O'pay.png" alt="歐付寶"></div>歐付寶</div>
           </div>
           <div class="epay-note">
-            📌 完成捐款後，請截圖並來信至
-            <strong>sunnywarmth2025@gmail.com</strong>，
-            主旨填寫「捐款通知」，並附上您的姓名與聯絡方式，以便寄送收據。
+            📌 完成捐款後，請截圖並加入
+            <a href="https://lin.ee/Nr1C5TR" target="_blank" rel="noopener"><strong>官方 LINE</strong></a>，
+            告知捐款金額與您的姓名，以便寄送收據。
           </div>
         </div>
       </div>
@@ -246,22 +247,23 @@
           </div>
           <div class="bank-row">
             <span class="br-label">銀行</span>
-            <span class="br-value">（請來信洽詢）</span>
+            <span class="br-value">元大銀行 草屯分行</span>
+          </div>
+          <div class="bank-row">
+            <span class="br-label">行號</span>
+            <span class="br-value">806-0105</span>
+            <button class="copy-btn" onclick="copyText(this,'8060105')">複製</button>
           </div>
           <div class="bank-row">
             <span class="br-label">帳號</span>
-            <span class="br-value">（請來信洽詢）</span>
-            <button class="copy-btn" onclick="copyText(this,'（請來信洽詢）')">複製</button>
-          </div>
-          <div class="bank-row">
-            <span class="br-label">郵政劃撥</span>
-            <span class="br-value">（請來信洽詢）</span>
+            <span class="br-value">201020-001401-80</span>
+            <button class="copy-btn" onclick="copyText(this,'20102000140180')">複製</button>
           </div>
         </div>
       </div>
       <div class="epay-note" style="max-width:560px;margin-top:16px">
-        📌 匯款完成後，請來信
-        <strong>sunnywarmth2025@gmail.com</strong>，
+        📌 匯款完成後，請加入
+        <a href="https://lin.ee/Nr1C5TR" target="_blank" rel="noopener"><strong>官方 LINE</strong></a>，
         告知匯款金額、日期及您的姓名，以便核對並開立收據。
       </div>
     </div>
