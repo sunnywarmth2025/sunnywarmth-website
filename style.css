@@ -6,12 +6,12 @@
 
 /* ── 色彩變數 ── */
 :root {
-  --vest:         #4182BE;   /* 背心天藍（主色）*/
-  --vest-deep:    #1F5F9A;   /* 深藍（標題）*/
-  --vest-darker:  #134176;   /* 最深藍（hover、footer）*/
-  --vest-light:   #C2DBF0;   /* 淡藍 */
-  --vest-pale:    #E4F0FA;   /* 極淡藍 */
-  --vest-cream:   #F2F8FD;   /* 頁面底色 */
+  --vest:         #00A0E9;   /* 主藍（主色）*/
+  --vest-deep:    #0077B6;   /* 深藍（標題）*/
+  --vest-darker:  #005588;   /* 最深藍（hover、footer）*/
+  --vest-light:   #B3E0F7;   /* 淡藍 */
+  --vest-pale:    #E0F4FD;   /* 極淡藍 */
+  --vest-cream:   #F0FAFF;   /* 頁面底色 */
   --logo-pink:    #E5607A;   /* Logo 粉紅雲 */
   --logo-yellow:  #FFC700;   /* Logo 黃太陽 */
   --green:        #52B788;
@@ -132,7 +132,7 @@ button { font-family: inherit; cursor: pointer; }
    頁面 Hero（子頁共用）
 ══════════════════════════════════════════════════ */
 .page-hero {
-  background: linear-gradient(135deg, var(--vest-deep) 0%, var(--vest) 60%, #5A9FD4 100%);
+  background: linear-gradient(135deg, var(--vest-deep) 0%, var(--vest) 60%, #33B5EE 100%);
   padding: 56px 24px;
   color: var(--white);
   text-align: center;
@@ -200,9 +200,9 @@ button { font-family: inherit; cursor: pointer; }
 .btn-primary {
   background: linear-gradient(135deg, var(--vest), var(--vest-deep));
   color: var(--white);
-  box-shadow: 0 4px 14px rgba(65,130,190,0.38);
+  box-shadow: 0 4px 14px rgba(0,160,233,0.38);
 }
-.btn-primary:hover { box-shadow: 0 6px 20px rgba(65,130,190,0.48); }
+.btn-primary:hover { box-shadow: 0 6px 20px rgba(0,160,233,0.48); }
 .btn-pink {
   background: var(--logo-pink);
   color: var(--white);
