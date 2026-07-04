@@ -248,20 +248,30 @@ button { font-family: inherit; cursor: pointer; }
   max-width: 1120px; margin: 0 auto;
   padding: 56px 24px 40px;
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1.2fr;
+  grid-template-columns: 2fr 1fr 1.4fr;
   gap: 40px;
 }
 .footer-brand img { height: 36px; filter: brightness(0) invert(1) opacity(0.9); margin-bottom: 14px; }
 .footer-brand p { font-size: 0.88rem; line-height: 1.8; opacity: 0.78; margin-bottom: 18px; }
 .footer-socials { display: flex; gap: 10px; }
 .footer-socials a {
-  width: 36px; height: 36px; border-radius: 50%;
+  width: 38px; height: 38px; border-radius: 50%;
   background: rgba(255,255,255,0.15);
   display: flex; align-items: center; justify-content: center;
-  font-size: 1rem;
-  transition: background 0.2s, transform 0.2s;
+  color: var(--white);
+  transition: transform 0.2s, opacity 0.2s;
 }
-.footer-socials a:hover { background: var(--vest); transform: translateY(-2px); }
+.footer-socials a:hover { transform: translateY(-3px); opacity: 0.85; }
+.footer-socials a.social-fb   { background: #1877F2; }
+.footer-socials a.social-line { background: #06C755; }
+.footer-socials a.social-mail { background: #EA4335; }
+.footer-socials a svg { width: 20px; height: 20px; display: block; }
+.footer-contact-item .ico { flex-shrink: 0; margin-top: 2px; display: flex; align-items: flex-start; }
+.footer-contact-item .ico svg { width: 16px; height: 16px; }
+.ico-maps  { color: #EA4335; }
+.ico-phone { color: var(--vest-light); }
+.ico-mail  { color: #EA4335; }
+.ico-clock { color: var(--logo-yellow); }
 .footer-col h4 {
   font-size: 0.88rem; font-weight: 700;
   color: var(--logo-yellow);
