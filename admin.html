@@ -248,6 +248,15 @@
       <div class="sb-item" onclick="window.open('index.html','_blank')">
         <span class="sb-icon">🌐</span><span>前台首頁</span>
       </div>
+      <hr class="sb-divider" />
+      <div class="sb-label">資料備份</div>
+      <div class="sb-item" onclick="exportBackup()">
+        <span class="sb-icon">💾</span><span>匯出備份 JSON</span>
+      </div>
+      <div class="sb-item" onclick="document.getElementById('importFile').click()">
+        <span class="sb-icon">📂</span><span>匯入備份 JSON</span>
+      </div>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importBackup(this)" />
     </aside>
 
     <!-- Main area -->
@@ -844,6 +853,42 @@ function switchTab(group, idx) {
     t.classList.toggle('on', i === idx);
     if (panels[i]) panels[i].classList.toggle('on', i === idx);
   });
+}
+
+function exportBackup() {
+  const data = { events, photos, exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `暖晴備份_${today()}.json`;
+  a.click();
+  toast('備份已下載 ✓');
+}
+
+function importBackup(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (Array.isArray(data.events) && Array.isArray(data.photos)) {
+        if (!confirm(`確定匯入備份嗎？\n活動：${data.events.length} 筆　照片：${data.photos.length} 筆\n（目前後台資料將被取代）`)) return;
+        events = data.events;
+        photos = data.photos;
+        save();
+        updateBadges();
+        renderSection();
+        toast('備份匯入成功 ✓');
+      } else {
+        alert('備份檔格式錯誤，請確認是正確的暖晴備份 JSON');
+      }
+    } catch {
+      alert('無法讀取此檔案，請確認是正確的 JSON 格式');
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
 }
 
 function toast(msg) {
