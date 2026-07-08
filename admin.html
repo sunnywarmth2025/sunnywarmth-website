@@ -604,8 +604,10 @@ function renderGallery() {
       : `<div class="thumb-ph">🖼️</div>`;
     const upDis   = idx === 0 ? 'disabled style="opacity:.3"' : '';
     const downDis = idx === photos.length - 1 ? 'disabled style="opacity:.3"' : '';
-    return `<tr>
-      <td><div style="display:flex;align-items:center;gap:10px">${thumb}<span>${p.title}</span></div></td>
+    return `<tr draggable="true" style="cursor:grab"
+        ondragstart="dragStart(event,${p.id})" ondragend="dragEnd(event)"
+        ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropOn(event,${p.id})">
+      <td><div style="display:flex;align-items:center;gap:10px"><span title="拖曳排序" style="color:#bbb;cursor:grab;user-select:none">⠿</span>${thumb}<span>${p.title}</span></div></td>
       <td>${p.date}</td>
       <td><span class="badge ${CAT_C[p.category]||''}">${p.category}</span></td>
       <td style="color:#aaa;font-size:12px">${p.src}</td>
@@ -731,7 +733,7 @@ function savePhoto() {
     photos[i] = obj;
     toast('照片已更新 ✓');
   } else {
-    photos.push(obj);
+    photos.unshift(obj);   // 新照片加在最上面
     toast('照片已新增 ✓');
   }
   save(); closeModal('photoModal'); renderGallery();
@@ -751,6 +753,24 @@ function movePhoto(id, dir) {
   const j = i + dir;
   if (j < 0 || j >= photos.length) return;
   [photos[i], photos[j]] = [photos[j], photos[i]];
+  save(); renderGallery();
+}
+
+// 拖曳排序：按住某列拖到目標列，放開後插入到該列前面
+let dragId = null;
+function dragStart(ev, id) { dragId = id; ev.dataTransfer.effectAllowed = 'move'; ev.currentTarget.style.opacity = '.4'; }
+function dragEnd(ev) { ev.currentTarget.style.opacity = ''; document.querySelectorAll('tr').forEach(r => r.style.boxShadow = ''); }
+function dragOver(ev) { ev.preventDefault(); ev.dataTransfer.dropEffect = 'move'; ev.currentTarget.style.boxShadow = 'inset 0 3px 0 var(--vest, #00A0E9)'; }
+function dragLeave(ev) { ev.currentTarget.style.boxShadow = ''; }
+function dropOn(ev, targetId) {
+  ev.preventDefault();
+  if (dragId === null || dragId === targetId) return;
+  const from = photos.findIndex(x => x.id === dragId);
+  if (from < 0) return;
+  const [item] = photos.splice(from, 1);
+  const to = photos.findIndex(x => x.id === targetId);   // 移除後重新定位目標
+  photos.splice(to < 0 ? photos.length : to, 0, item);
+  dragId = null;
   save(); renderGallery();
 }
 
