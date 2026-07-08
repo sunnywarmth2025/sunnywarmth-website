@@ -625,6 +625,7 @@ function renderGallery() {
     <div class="pg-hdr">
       <div class="pg-title">🖼️ 生活點滴管理</div>
       <div class="pg-actions">
+        <button class="btn btn-ghost" onclick="sortPhotosByDate()" title="把所有照片依日期由新到舊重新排列">🗓 依日期排序</button>
         <button class="btn btn-green" onclick="openDownload('gallery')">📥 下載更新檔</button>
         <button class="btn btn-primary" onclick="openPhotoModal(null)">＋ 新增照片</button>
       </div>
@@ -744,6 +745,13 @@ function deletePhoto(id) {
   if (!confirm(`確定刪除「${p.title}」嗎？`)) return;
   photos = photos.filter(x => x.id !== id);
   save(); renderGallery(); toast('已刪除');
+}
+
+// 依日期由新到舊重新排序（同日期維持目前順序）；手動排的順序會被覆蓋
+function sortPhotosByDate() {
+  if (!confirm('確定把所有照片依日期由新到舊重新排列嗎？\n（目前手動排的順序會被覆蓋）')) return;
+  photos.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+  save(); renderGallery(); toast('已依日期排序 ✓');
 }
 
 // 上移(dir=-1)/下移(dir=1)照片，順序即為網站顯示順序
