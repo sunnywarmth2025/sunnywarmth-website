@@ -458,6 +458,16 @@ const PHOTOS = [
 // ── 以下為程式邏輯，一般不需修改 ──
 const MONTHS = ["一","二","三","四","五","六","七","八","九","十","十一","十二"];
 
+// 自動補齊圖片路徑：後台只填檔名（例「20251104草屯」）也能顯示。
+// 已含 gallery/ 或完整網址則原樣使用；沒有副檔名時自動補 .jpg。
+function photoSrc(s) {
+  s = (s || '').trim();
+  if (!s) return '';
+  if (!/^https?:\/\//i.test(s) && s.indexOf('gallery/') !== 0) s = 'gallery/' + s;
+  if (!/\.(jpe?g|png|gif|webp)$/i.test(s)) s += '.jpg';
+  return s;
+}
+
 let currentCat = 'all';
 
 function renderGallery(cat) {
@@ -472,7 +482,7 @@ function renderGallery(cat) {
     const dateStr = `${d.getFullYear()} 年 ${MONTHS[d.getMonth()]} 月`;
     return `<div class="gallery-card" onclick="openLightbox(${p.id})">
       <span class="gallery-cat-badge">${p.category}</span>
-      <img src="${p.src}" alt="${p.title}" loading="lazy" />
+      <img src="${photoSrc(p.src)}" alt="${p.title}" loading="lazy" />
       <div class="gallery-card-overlay">
         <h4>${p.title}</h4>
         <span>${dateStr}</span>
@@ -485,7 +495,7 @@ function openLightbox(id) {
   const p = PHOTOS.find(x => x.id === id);
   if (!p) return;
   const d = new Date(p.date);
-  document.getElementById('lb-img').src = p.src;
+  document.getElementById('lb-img').src = photoSrc(p.src);
   document.getElementById('lb-img').alt = p.title;
   document.getElementById('lb-title').textContent = p.title;
   document.getElementById('lb-meta').textContent =
