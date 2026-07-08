@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>暖晴後台管理系統</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Microsoft JhengHei',Arial,sans-serif;background:#f0f2f5;color:#333;font-size:14px;min-height:100vh}
+
+    /* ── Login ── */
+    #loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;
+      background:linear-gradient(135deg,#00A0E9 0%,#005588 100%)}
+    .login-box{background:#fff;border-radius:20px;padding:48px 40px;width:340px;
+      box-shadow:0 24px 64px rgba(0,0,0,.2);text-align:center}
+    .login-icon{font-size:48px;margin-bottom:16px}
+    .login-title{font-size:22px;font-weight:800;color:#00A0E9;margin-bottom:4px}
+    .login-sub{font-size:13px;color:#999;margin-bottom:32px}
+    .login-box input{width:100%;padding:12px 16px;border:2px solid #e0e0e0;border-radius:10px;
+      font-size:18px;text-align:center;letter-spacing:6px;outline:none;transition:border-color .2s;margin-bottom:14px}
+    .login-box input:focus{border-color:#00A0E9}
+    .login-btn{width:100%;padding:13px;background:#00A0E9;color:#fff;border:none;border-radius:10px;
+      font-size:15px;font-weight:700;cursor:pointer;transition:background .2s}
+    .login-btn:hover{background:#0077B6}
+    .login-err{color:#e74c3c;font-size:13px;margin-top:10px;min-height:18px}
+    .login-hint{font-size:11px;color:#ccc;margin-top:20px}
+
+    /* ── Layout ── */
+    #adminWrap{display:none;flex-direction:column;min-height:100vh}
+    #adminWrap.on{display:flex}
+
+    /* Header */
+    .adm-hdr{background:#fff;border-bottom:1px solid #e8eaed;height:54px;padding:0 20px;
+      display:flex;align-items:center;justify-content:space-between;
+      position:sticky;top:0;z-index:200;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+    .hdr-left{display:flex;align-items:center;gap:12px}
+    .hdr-logo{width:34px;height:34px;background:#00A0E9;border-radius:9px;
+      display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px}
+    .hdr-title{font-size:15px;font-weight:800;color:#333}
+    .hdr-sub{font-size:11px;color:#aaa}
+    .btn-logout{padding:6px 14px;background:transparent;color:#999;border:1px solid #ddd;
+      border-radius:7px;font-size:12px;cursor:pointer;transition:all .2s}
+    .btn-logout:hover{background:#f5f5f5;color:#555}
+
+    /* Body */
+    .adm-body{display:flex;flex:1;overflow:hidden}
+
+    /* Sidebar */
+    .sidebar{width:190px;min-width:190px;background:#fff;border-right:1px solid #e8eaed;
+      padding:16px 0;display:flex;flex-direction:column}
+    .sb-label{font-size:10px;font-weight:700;color:#bbb;padding:10px 18px 4px;
+      letter-spacing:1px;text-transform:uppercase}
+    .sb-item{display:flex;align-items:center;gap:9px;padding:10px 18px;cursor:pointer;
+      color:#666;font-size:13px;transition:all .15s;border-left:3px solid transparent}
+    .sb-item:hover{background:#f5f7fa;color:#333}
+    .sb-item.on{background:#E0F4FD;color:#00A0E9;border-left-color:#00A0E9;font-weight:700}
+    .sb-icon{font-size:15px;width:18px;text-align:center}
+    .sb-badge{margin-left:auto;background:#00A0E9;color:#fff;font-size:10px;
+      font-weight:700;padding:2px 7px;border-radius:10px}
+    .sb-divider{border:none;border-top:1px solid #f0f0f0;margin:12px 0}
+
+    /* Main */
+    .main{flex:1;padding:24px;overflow-y:auto}
+
+    /* Page header */
+    .pg-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+    .pg-title{font-size:19px;font-weight:800;color:#333}
+    .pg-actions{display:flex;gap:10px}
+
+    /* Buttons */
+    .btn{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;
+      cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:5px}
+    .btn-primary{background:#00A0E9;color:#fff}
+    .btn-primary:hover{background:#0077B6}
+    .btn-ghost{background:#fff;color:#555;border:1px solid #ddd}
+    .btn-ghost:hover{background:#f5f5f5}
+    .btn-danger{background:#fff;color:#e74c3c;border:1px solid #fcc}
+    .btn-danger:hover{background:#fff5f5}
+    .btn-green{background:#27ae60;color:#fff}
+    .btn-green:hover{background:#219a52}
+    .btn-sm{padding:5px 10px;font-size:12px}
+
+    /* Card / Table */
+    .card{background:#fff;border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow:hidden}
+    table{width:100%;border-collapse:collapse}
+    thead{background:#f8f9fa}
+    th{padding:11px 16px;text-align:left;font-size:11px;font-weight:700;color:#777;
+      border-bottom:1px solid #e8eaed;white-space:nowrap}
+    td{padding:12px 16px;border-bottom:1px solid #f2f2f2;font-size:13px;vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:#fafbfc}
+    .col-actions{white-space:nowrap;text-align:right}
+
+    /* Badges */
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+    .b-open{background:#d1f2eb;color:#1a8a5a}
+    .b-soon{background:#fef9e7;color:#c07c00}
+    .b-full{background:#fde8d8;color:#a04000}
+    .b-ended{background:#f0f0f0;color:#888}
+    .b-活動紀錄{background:#d6eaf8;color:#1a5276}
+    .b-日常生活{background:#d5f5e3;color:#1a6633}
+    .b-志工服務{background:#fde8d8;color:#a04000}
+    .b-培訓課程{background:#e8daef;color:#6c3483}
+
+    /* Empty state */
+    .empty{text-align:center;padding:60px 20px;color:#bbb}
+    .empty-icon{font-size:44px;margin-bottom:12px}
+
+    /* Gallery thumb */
+    .thumb{width:52px;height:40px;object-fit:cover;border-radius:6px;
+      background:#f0f0f0;display:block}
+    .thumb-ph{width:52px;height:40px;background:#f0f0f0;border-radius:6px;
+      display:flex;align-items:center;justify-content:center;color:#ccc;font-size:18px}
+
+    /* ── Modals ── */
+    .backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.42);
+      z-index:1000;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto}
+    .backdrop.on{display:flex}
+    .modal{background:#fff;border-radius:16px;width:100%;max-width:580px;margin:auto;
+      box-shadow:0 24px 64px rgba(0,0,0,.22);animation:mIn .22s ease}
+    .modal-lg{max-width:700px}
+    @keyframes mIn{from{transform:translateY(-18px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .m-hdr{padding:18px 22px 14px;border-bottom:1px solid #f0f0f0;
+      display:flex;align-items:center;justify-content:space-between}
+    .m-title{font-size:16px;font-weight:800;color:#333}
+    .m-close{background:none;border:none;cursor:pointer;color:#bbb;font-size:18px;
+      width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+    .m-close:hover{background:#f0f0f0;color:#666}
+    .m-body{padding:20px 22px}
+    .m-footer{padding:14px 22px;border-top:1px solid #f0f0f0;
+      display:flex;gap:10px;justify-content:flex-end}
+
+    /* Form tabs */
+    .f-tabs{display:flex;border-bottom:2px solid #f0f0f0;margin-bottom:18px}
+    .f-tab{padding:8px 16px;font-size:13px;font-weight:600;color:#aaa;
+      cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px}
+    .f-tab.on{color:#00A0E9;border-bottom-color:#00A0E9}
+    .f-panel{display:none}
+    .f-panel.on{display:block}
+
+    /* Form fields */
+    .fg{margin-bottom:14px}
+    .fl{display:block;font-size:12px;font-weight:700;color:#666;margin-bottom:5px}
+    .req{color:#e74c3c}
+    .fc{width:100%;padding:8px 12px;border:1.5px solid #ddd;border-radius:8px;
+      font-size:13px;color:#333;outline:none;transition:border-color .2s;
+      font-family:inherit;background:#fff}
+    .fc:focus{border-color:#00A0E9}
+    textarea.fc{resize:vertical;min-height:72px}
+    .fhint{font-size:11px;color:#aaa;margin-top:4px}
+    .f2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .f3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+
+    /* Image preview */
+    .img-prev{border:2px dashed #e0e0e0;border-radius:10px;padding:14px;
+      text-align:center;background:#fafafa;margin-top:8px;min-height:80px;
+      display:flex;align-items:center;justify-content:center;gap:12px}
+    .img-prev img{max-height:100px;max-width:200px;border-radius:6px;object-fit:cover}
+    .img-ph{font-size:28px;color:#ddd}
+
+    /* Notice */
+    .notice{background:#E0F4FD;border:1px solid #B3E0F7;border-radius:9px;
+      padding:12px 16px;font-size:13px;color:#005588;margin-bottom:16px;line-height:1.6}
+    .notice strong{font-weight:700}
+
+    /* Steps */
+    .steps{display:flex;flex-direction:column;gap:12px;margin-bottom:18px}
+    .step{display:flex;gap:12px;align-items:flex-start;font-size:13px;line-height:1.6;color:#444}
+    .step-num{flex-shrink:0;width:24px;height:24px;background:#00A0E9;color:#fff;
+      border-radius:50%;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+
+    /* Code area */
+    .code-box{background:#1a1d23;color:#abb2bf;border-radius:9px;padding:14px 16px;
+      font-family:'Courier New',monospace;font-size:11.5px;line-height:1.7;
+      overflow:auto;max-height:300px;white-space:pre;margin-bottom:12px}
+
+    /* Toast */
+    .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+      background:#333;color:#fff;padding:10px 22px;border-radius:40px;
+      font-size:13px;font-weight:600;opacity:0;transition:opacity .3s;
+      pointer-events:none;z-index:9999}
+    .toast.show{opacity:1}
+
+    /* Responsive */
+    @media(max-width:700px){
+      .sidebar{width:54px;min-width:54px}
+      .sb-label,.sb-item span:not(.sb-icon),.sb-badge{display:none}
+      .sb-item{padding:12px;justify-content:center}
+      .f2,.f3{grid-template-columns:1fr}
+      .main{padding:14px}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN ═══════════════ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-icon">☀️</div>
+    <div class="login-title">暖晴後台管理</div>
+    <div class="login-sub">社團法人暖晴社會福利協會</div>
+    <input type="password" id="pinInput" placeholder="請輸入管理密碼" autocomplete="current-password"
+      onkeydown="if(event.key==='Enter')doLogin()" />
+    <button class="login-btn" onclick="doLogin()">登入</button>
+    <div class="login-err" id="loginErr"></div>
+    <div class="login-hint">預設密碼：sunny2025</div>
+  </div>
+</div>
+
+<!-- ═══════════════ ADMIN WRAP ═══════════════ -->
+<div id="adminWrap">
+
+  <!-- Header -->
+  <header class="adm-hdr">
+    <div class="hdr-left">
+      <div class="hdr-logo">☀</div>
+      <div>
+        <div class="hdr-title">暖晴後台管理系統</div>
+        <div class="hdr-sub">社團法人暖晴社會福利協會</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">登出</button>
+  </header>
+
+  <div class="adm-body">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sb-label">內容管理</div>
+      <div class="sb-item on" id="nav-events" onclick="showSection('events')">
+        <span class="sb-icon">📅</span>
+        <span>活動公告</span>
+        <span class="sb-badge" id="badge-events">0</span>
+      </div>
+      <div class="sb-item" id="nav-gallery" onclick="showSection('gallery')">
+        <span class="sb-icon">🖼️</span>
+        <span>生活點滴</span>
+        <span class="sb-badge" id="badge-gallery">0</span>
+      </div>
+      <hr class="sb-divider" />
+      <div class="sb-label">快速連結</div>
+      <div class="sb-item" onclick="window.open('events.html','_blank')">
+        <span class="sb-icon">🔗</span><span>活動頁面</span>
+      </div>
+      <div class="sb-item" onclick="window.open('gallery.html','_blank')">
+        <span class="sb-icon">🔗</span><span>相冊頁面</span>
+      </div>
+      <div class="sb-item" onclick="window.open('index.html','_blank')">
+        <span class="sb-icon">🌐</span><span>前台首頁</span>
+      </div>
+    </aside>
+
+    <!-- Main area -->
+    <main class="main" id="mainArea"></main>
+  </div>
+</div>
+
+<!-- ═══════════════ EVENT MODAL ═══════════════ -->
+<div class="backdrop" id="eventModal">
+  <div class="modal">
+    <div class="m-hdr">
+      <div class="m-title" id="eventModalTitle">新增活動</div>
+      <button class="m-close" onclick="closeModal('eventModal')">✕</button>
+    </div>
+    <div class="m-body">
+      <div class="f-tabs">
+        <div class="f-tab on" onclick="switchTab('event',0)">📋 基本資料</div>
+        <div class="f-tab" onclick="switchTab('event',1)">⚙️ 詳細設定</div>
+      </div>
+      <!-- Tab 0 -->
+      <div class="f-panel on" id="event-tab-0">
+        <div class="fg">
+          <label class="fl">活動名稱 <span class="req">*</span></label>
+          <input type="text" id="e_title" class="fc" placeholder="例：夏日藝術療癒工作坊" />
+        </div>
+        <div class="f2">
+          <div class="fg">
+            <label class="fl">活動類型</label>
+            <input type="text" id="e_type" class="fc" placeholder="例：藝術療癒" />
+          </div>
+          <div class="fg">
+            <label class="fl">狀態 <span class="req">*</span></label>
+            <select id="e_status" class="fc">
+              <option value="open">報名中</option>
+              <option value="soon">即將開始</option>
+              <option value="full">額滿</option>
+              <option value="ended">已結束</option>
+            </select>
+          </div>
+        </div>
+        <div class="f2">
+          <div class="fg">
+            <label class="fl">活動日期 <span class="req">*</span></label>
+            <input type="date" id="e_date" class="fc" />
+          </div>
+          <div class="fg">
+            <label class="fl">活動時間</label>
+            <input type="text" id="e_time" class="fc" placeholder="例：09:00–12:00" />
+          </div>
+        </div>
+        <div class="fg">
+          <label class="fl">活動地點</label>
+          <input type="text" id="e_location" class="fc" placeholder="例：協會二樓活動室" />
+        </div>
+        <div class="fg">
+          <label class="fl">活動簡介（卡片上顯示）</label>
+          <textarea id="e_desc" class="fc" rows="3" placeholder="一兩句話說明活動內容..."></textarea>
+        </div>
+      </div>
+      <!-- Tab 1 -->
+      <div class="f-panel" id="event-tab-1">
+        <div class="fg">
+          <label class="fl">詳細說明（點進彈窗後顯示）</label>
+          <textarea id="e_detail" class="fc" rows="4" placeholder="更完整的活動說明、注意事項..."></textarea>
+        </div>
+        <div class="f3">
+          <div class="fg">
+            <label class="fl">費用</label>
+            <input type="text" id="e_fee" class="fc" placeholder="免費" />
+          </div>
+          <div class="fg">
+            <label class="fl">名額</label>
+            <input type="text" id="e_quota" class="fc" placeholder="不限" />
+          </div>
+          <div class="fg">
+            <label class="fl">聯絡方式</label>
+            <input type="text" id="e_contact" class="fc" placeholder="例：來信報名" />
+          </div>
+        </div>
+        <div class="fg">
+          <label class="fl">報名連結</label>
+          <input type="url" id="e_link" class="fc" placeholder="https://... 或 mailto:...（留空則顯示「來信報名」）" />
+        </div>
+      </div>
+    </div>
+    <div class="m-footer">
+      <button class="btn btn-ghost" onclick="closeModal('eventModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveEvent()">💾 儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PHOTO MODAL ═══════════════ -->
+<div class="backdrop" id="photoModal">
+  <div class="modal">
+    <div class="m-hdr">
+      <div class="m-title" id="photoModalTitle">新增照片</div>
+      <button class="m-close" onclick="closeModal('photoModal')">✕</button>
+    </div>
+    <div class="m-body">
+      <div class="f2">
+        <div class="fg">
+          <label class="fl">照片標題 <span class="req">*</span></label>
+          <input type="text" id="p_title" class="fc" placeholder="例：協會團隊合影" />
+        </div>
+        <div class="fg">
+          <label class="fl">分類 <span class="req">*</span></label>
+          <select id="p_cat" class="fc">
+            <option value="活動紀錄">活動紀錄</option>
+            <option value="日常生活">日常生活</option>
+            <option value="志工服務">志工服務</option>
+            <option value="培訓課程">培訓課程</option>
+          </select>
+        </div>
+      </div>
+      <div class="f2">
+        <div class="fg">
+          <label class="fl">照片日期 <span class="req">*</span></label>
+          <input type="date" id="p_date" class="fc" />
+        </div>
+        <div class="fg">
+          <label class="fl">照片檔名 <span class="req">*</span></label>
+          <input type="text" id="p_src" class="fc" placeholder="例：gallery/photo1.jpg"
+            oninput="updatePreview()" />
+          <div class="fhint">請先將照片放入網站資料夾（建議放 gallery/ 子資料夾）</div>
+        </div>
+      </div>
+      <div class="img-prev" id="imgPrev">
+        <span class="img-ph">🖼️</span>
+        <img id="prevImg" src="" alt="" style="display:none;" />
+      </div>
+      <div class="fg" style="margin-top:14px">
+        <label class="fl">照片說明</label>
+        <textarea id="p_desc" class="fc" rows="3" placeholder="照片說明文字（燈箱展開後顯示）..."></textarea>
+      </div>
+    </div>
+    <div class="m-footer">
+      <button class="btn btn-ghost" onclick="closeModal('photoModal')">取消</button>
+      <button class="btn btn-primary" onclick="savePhoto()">💾 儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ DOWNLOAD MODAL ═══════════════ -->
+<div class="backdrop" id="dlModal">
+  <div class="modal modal-lg">
+    <div class="m-hdr">
+      <div class="m-title" id="dlTitle">下載更新後的檔案</div>
+      <button class="m-close" onclick="closeModal('dlModal')">✕</button>
+    </div>
+    <div class="m-body">
+      <div class="notice" id="dlNotice"></div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div>點擊「<strong>下載檔案</strong>」，儲存到電腦（若出現「無法下載」請改用下方複製程式碼方式）</div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div>前往 <strong>GitHub</strong>，找到對應的檔案，點選「上傳」取代原本的版本</div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div>等待約 1–2 分鐘，網站即會自動更新</div>
+        </div>
+      </div>
+      <div id="dlFallback" style="display:none">
+        <div style="font-size:13px;color:#666;margin-bottom:8px">
+          ⚠️ 無法自動下載時，請複製以下程式碼，貼到 HTML 檔案中替換對應位置：
+        </div>
+        <div class="code-box" id="dlCode"></div>
+        <button class="btn btn-ghost btn-sm" onclick="copyCode()">📋 複製程式碼</button>
+        <span id="copyOk" style="font-size:12px;color:#27ae60;margin-left:8px;display:none">✓ 已複製</span>
+      </div>
+    </div>
+    <div class="m-footer">
+      <button class="btn btn-ghost" onclick="closeModal('dlModal')">關閉</button>
+      <button class="btn btn-green" id="dlBtn" onclick="doDownload()">📥 下載檔案</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ════════════════════════════════════
+   設定區（可修改）
+════════════════════════════════════ */
+const ADMIN_PASSWORD = 'sunny2025';
+
+/* ════════════════════════════════════
+   初始資料（與網站同步）
+════════════════════════════════════ */
+const INIT_EVENTS = [
+  {
+    id:1, title:"夏日愛心送餐志工招募", type:"志工招募",
+    date:"2025-07-15", time:"08:30–11:30",
+    location:"南投縣草屯鎮（集合點報名後通知）", status:"open",
+    desc:"招募愛心志工，協助為獨居長者送餐，一起把溫暖送到每位長輩的家門口。",
+    detail:"本次志工服務需騎機車或自行開車，協助將便當送至約 8–10 戶獨居長者家中。完成後提供志工時數證明，歡迎個人或團體報名。",
+    contact:"來信：sunnywarmth2025@gmail.com", fee:"免費", quota:"15 人",
+    regLink:"mailto:sunnywarmth2025@gmail.com?subject=志工報名-夏日愛心送餐"
+  },
+  {
+    id:2, title:"親子手作藝術工作坊", type:"藝術療癒",
+    date:"2025-07-27", time:"14:00–16:30",
+    location:"草屯服務據點 多功能教室", status:"open",
+    desc:"以植物染技法製作獨一無二的布袋，讓親子在創作中建立連結、享受療癒時光。",
+    detail:"適合 6 歲以上兒童與家長共同參與，材料費全免。每組限一位成人搭配一位兒童，由專業藝術療育師帶領。",
+    contact:"來信：sunnywarmth2025@gmail.com", fee:"免費", quota:"12 組",
+    regLink:"mailto:sunnywarmth2025@gmail.com?subject=報名-親子手作工作坊"
+  },
+  {
+    id:3, title:"心理健康講座：與焦慮和平共處", type:"講座",
+    date:"2025-08-09", time:"19:00–21:00",
+    location:"線上（Zoom，報名後提供連結）", status:"soon",
+    desc:"邀請臨床心理師分享辨識焦慮訊號的方法，並學習有效的自我調節技巧。",
+    detail:"演講結束後開放 20 分鐘 Q&A。報名後將以 Email 發送 Zoom 連結，敬請留意信箱。",
+    contact:"來信：sunnywarmth2025@gmail.com", fee:"免費", quota:"不限",
+    regLink:"mailto:sunnywarmth2025@gmail.com?subject=報名-心理健康講座"
+  },
+  {
+    id:4, title:"社區烘焙義賣——共融甜點節", type:"義賣活動",
+    date:"2025-06-22", time:"10:00–16:00",
+    location:"草屯鎮中正路廣場", status:"ended",
+    desc:"由服務對象與志工共同烘焙，現場義賣，所得全額用於服務推廣。",
+    detail:"活動已圓滿落幕！感謝所有參與的夥伴，本次義賣所得善款將全額用於長者送餐服務。敬請期待下一次活動！",
+    contact:"感謝您的支持！", fee:"—", quota:"—", regLink:""
+  }
+];
+
+const INIT_PHOTOS = [
+  {
+    id:1, src:"team-photo.png", title:"暖晴大家庭合影",
+    date:"2025-06-01", category:"日常生活",
+    desc:"協會全體夥伴合影，每一張笑臉背後都是滿滿的熱情與付出。"
+  }
+];
+
+/* ════════════════════════════════════
+   State
+════════════════════════════════════ */
+let events  = JSON.parse(localStorage.getItem('sw_events'))  || JSON.parse(JSON.stringify(INIT_EVENTS));
+let photos  = JSON.parse(localStorage.getItem('sw_photos'))  || JSON.parse(JSON.stringify(INIT_PHOTOS));
+let section = 'events';
+let editId  = null;
+let dlType  = 'events';
+let dlHtml  = '';
+
+function save() {
+  localStorage.setItem('sw_events', JSON.stringify(events));
+  localStorage.setItem('sw_photos', JSON.stringify(photos));
+  updateBadges();
+}
+
+/* ════════════════════════════════════
+   Auth
+════════════════════════════════════ */
+function doLogin() {
+  const v = document.getElementById('pinInput').value;
+  if (v === ADMIN_PASSWORD) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('adminWrap').classList.add('on');
+    updateBadges();
+    renderSection();
+    localStorage.setItem('sw_auth', '1');
+  } else {
+    document.getElementById('loginErr').textContent = '密碼錯誤，請再試一次';
+    document.getElementById('pinInput').value = '';
+    document.getElementById('pinInput').focus();
+  }
+}
+function doLogout() {
+  localStorage.removeItem('sw_auth');
+  document.getElementById('adminWrap').classList.remove('on');
+  document.getElementById('loginScreen').style.display = '';
+  document.getElementById('pinInput').value = '';
+}
+
+/* ════════════════════════════════════
+   Navigation
+════════════════════════════════════ */
+function showSection(s) {
+  section = s;
+  document.querySelectorAll('.sb-item').forEach(el => el.classList.remove('on'));
+  document.getElementById('nav-' + s).classList.add('on');
+  renderSection();
+}
+function updateBadges() {
+  document.getElementById('badge-events').textContent = events.length;
+  document.getElementById('badge-gallery').textContent = photos.length;
+}
+
+/* ════════════════════════════════════
+   Render
+════════════════════════════════════ */
+function renderSection() {
+  if (section === 'events') renderEvents();
+  else renderGallery();
+}
+
+function renderEvents() {
+  const STATUS = { open:'報名中', soon:'即將開始', full:'額滿', ended:'已結束' };
+  const SC = { open:'b-open', soon:'b-soon', full:'b-full', ended:'b-ended' };
+  let rows = events.length ? events.map(e => `
+    <tr>
+      <td><strong>${e.title}</strong><br><span style="color:#aaa;font-size:11px">${e.type||''}</span></td>
+      <td>${e.date}</td>
+      <td>${e.time||'—'}</td>
+      <td>${e.location||'—'}</td>
+      <td><span class="badge ${SC[e.status]||'b-ended'}">${STATUS[e.status]||e.status}</span></td>
+      <td class="col-actions">
+        <button class="btn btn-ghost btn-sm" onclick="openEventModal(${e.id})">✏️ 編輯</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteEvent(${e.id})">🗑 刪除</button>
+      </td>
+    </tr>`).join('') :
+    `<tr><td colspan="6"><div class="empty"><div class="empty-icon">📭</div>尚無活動資料，點右上角「新增」開始</div></td></tr>`;
+
+  document.getElementById('mainArea').innerHTML = `
+    <div class="pg-hdr">
+      <div class="pg-title">📅 活動公告管理</div>
+      <div class="pg-actions">
+        <button class="btn btn-green" onclick="openDownload('events')">📥 下載更新檔</button>
+        <button class="btn btn-primary" onclick="openEventModal(null)">＋ 新增活動</button>
+      </div>
+    </div>
+    <div class="card">
+      <table>
+        <thead><tr>
+          <th>活動名稱</th><th>日期</th><th>時間</th>
+          <th>地點</th><th>狀態</th><th style="text-align:right">操作</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+function renderGallery() {
+  const CAT_C = { '活動紀錄':'b-活動紀錄','日常生活':'b-日常生活','志工服務':'b-志工服務','培訓課程':'b-培訓課程' };
+  let rows = photos.length ? photos.map(p => {
+    const thumb = p.src
+      ? `<img class="thumb" src="${p.src}" alt="${p.title}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><div class="thumb-ph" style="display:none">🖼️</div>`
+      : `<div class="thumb-ph">🖼️</div>`;
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:10px">${thumb}<span>${p.title}</span></div></td>
+      <td>${p.date}</td>
+      <td><span class="badge ${CAT_C[p.category]||''}">${p.category}</span></td>
+      <td style="color:#aaa;font-size:12px">${p.src}</td>
+      <td class="col-actions">
+        <button class="btn btn-ghost btn-sm" onclick="openPhotoModal(${p.id})">✏️ 編輯</button>
+        <button class="btn btn-danger btn-sm" onclick="deletePhoto(${p.id})">🗑 刪除</button>
+      </td>
+    </tr>`;
+  }).join('') :
+    `<tr><td colspan="5"><div class="empty"><div class="empty-icon">📷</div>尚無照片，點右上角「新增」開始</div></td></tr>`;
+
+  document.getElementById('mainArea').innerHTML = `
+    <div class="pg-hdr">
+      <div class="pg-title">🖼️ 生活點滴管理</div>
+      <div class="pg-actions">
+        <button class="btn btn-green" onclick="openDownload('gallery')">📥 下載更新檔</button>
+        <button class="btn btn-primary" onclick="openPhotoModal(null)">＋ 新增照片</button>
+      </div>
+    </div>
+    <div class="card">
+      <table>
+        <thead><tr>
+          <th>照片</th><th>日期</th><th>分類</th><th>檔名</th><th style="text-align:right">操作</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+/* ════════════════════════════════════
+   Event CRUD
+════════════════════════════════════ */
+function openEventModal(id) {
+  editId = id;
+  const e = id ? events.find(x => x.id === id) : null;
+  document.getElementById('eventModalTitle').textContent = id ? '編輯活動' : '新增活動';
+  document.getElementById('e_title').value    = e?.title    || '';
+  document.getElementById('e_type').value     = e?.type     || '';
+  document.getElementById('e_date').value     = e?.date     || today();
+  document.getElementById('e_time').value     = e?.time     || '';
+  document.getElementById('e_location').value = e?.location || '';
+  document.getElementById('e_status').value   = e?.status   || 'open';
+  document.getElementById('e_desc').value     = e?.desc     || '';
+  document.getElementById('e_detail').value   = e?.detail   || '';
+  document.getElementById('e_fee').value      = e?.fee      || '免費';
+  document.getElementById('e_quota').value    = e?.quota    || '不限';
+  document.getElementById('e_contact').value  = e?.contact  || '';
+  document.getElementById('e_link').value     = e?.regLink  || '';
+  switchTab('event', 0);
+  showModal('eventModal');
+}
+
+function saveEvent() {
+  const title = document.getElementById('e_title').value.trim();
+  const date  = document.getElementById('e_date').value;
+  if (!title || !date) { alert('請填寫活動名稱與日期'); return; }
+  const obj = {
+    id:       editId || nextId(events),
+    title,
+    type:     document.getElementById('e_type').value.trim(),
+    date,
+    time:     document.getElementById('e_time').value.trim(),
+    location: document.getElementById('e_location').value.trim(),
+    status:   document.getElementById('e_status').value,
+    desc:     document.getElementById('e_desc').value.trim(),
+    detail:   document.getElementById('e_detail').value.trim(),
+    contact:  document.getElementById('e_contact').value.trim(),
+    fee:      document.getElementById('e_fee').value.trim() || '免費',
+    quota:    document.getElementById('e_quota').value.trim() || '不限',
+    regLink:  document.getElementById('e_link').value.trim()
+  };
+  if (editId) {
+    const i = events.findIndex(x => x.id === editId);
+    events[i] = obj;
+    toast('活動已更新 ✓');
+  } else {
+    events.push(obj);
+    toast('活動已新增 ✓');
+  }
+  save(); closeModal('eventModal'); renderEvents();
+}
+
+function deleteEvent(id) {
+  const e = events.find(x => x.id === id);
+  if (!confirm(`確定刪除「${e.title}」嗎？`)) return;
+  events = events.filter(x => x.id !== id);
+  save(); renderEvents(); toast('已刪除');
+}
+
+/* ════════════════════════════════════
+   Photo CRUD
+════════════════════════════════════ */
+function openPhotoModal(id) {
+  editId = id;
+  const p = id ? photos.find(x => x.id === id) : null;
+  document.getElementById('photoModalTitle').textContent = id ? '編輯照片' : '新增照片';
+  document.getElementById('p_title').value = p?.title    || '';
+  document.getElementById('p_date').value  = p?.date     || today();
+  document.getElementById('p_cat').value   = p?.category || '活動紀錄';
+  document.getElementById('p_src').value   = p?.src      || '';
+  document.getElementById('p_desc').value  = p?.desc     || '';
+  updatePreview();
+  showModal('photoModal');
+}
+
+function savePhoto() {
+  const title = document.getElementById('p_title').value.trim();
+  const src   = document.getElementById('p_src').value.trim();
+  const date  = document.getElementById('p_date').value;
+  if (!title || !src || !date) { alert('請填寫標題、日期與照片檔名'); return; }
+  const obj = {
+    id:       editId || nextId(photos),
+    src,
+    title,
+    date,
+    category: document.getElementById('p_cat').value,
+    desc:     document.getElementById('p_desc').value.trim()
+  };
+  if (editId) {
+    const i = photos.findIndex(x => x.id === editId);
+    photos[i] = obj;
+    toast('照片已更新 ✓');
+  } else {
+    photos.push(obj);
+    toast('照片已新增 ✓');
+  }
+  save(); closeModal('photoModal'); renderGallery();
+}
+
+function deletePhoto(id) {
+  const p = photos.find(x => x.id === id);
+  if (!confirm(`確定刪除「${p.title}」嗎？`)) return;
+  photos = photos.filter(x => x.id !== id);
+  save(); renderGallery(); toast('已刪除');
+}
+
+function updatePreview() {
+  const src = document.getElementById('p_src').value.trim();
+  const img = document.getElementById('prevImg');
+  const ph  = document.querySelector('#imgPrev .img-ph');
+  if (src) {
+    img.src = src; img.style.display = 'block';
+    ph.style.display = 'none';
+    img.onerror = () => { img.style.display = 'none'; ph.style.display = ''; };
+  } else {
+    img.style.display = 'none'; ph.style.display = '';
+  }
+}
+
+/* ════════════════════════════════════
+   Download / Export
+════════════════════════════════════ */
+async function openDownload(type) {
+  dlType = type;
+  const filename = type === 'events' ? 'events.html' : 'gallery.html';
+  document.getElementById('dlTitle').textContent = `下載更新後的 ${filename}`;
+  document.getElementById('dlNotice').innerHTML =
+    `<strong>📥 說明：</strong>下載 <strong>${filename}</strong>，上傳到 GitHub 取代原本的檔案，網站即會自動更新。`;
+  document.getElementById('dlFallback').style.display = 'none';
+
+  try {
+    const res = await fetch(filename + '?t=' + Date.now());
+    if (!res.ok) throw new Error('fetch failed');
+    dlHtml = await res.text();
+    const code = type === 'events' ? genEventsCode() : genPhotosCode();
+    const marker_s = type === 'events' ? '/* ==EVENTS_DATA_START== */' : '/* ==PHOTOS_DATA_START== */';
+    const marker_e = type === 'events' ? '/* ==EVENTS_DATA_END== */'   : '/* ==PHOTOS_DATA_END== */';
+    const re = new RegExp(marker_s.replace(/\*/g,'\\*').replace(/\//g,'\\/') +
+      '[\\s\\S]*?' + marker_e.replace(/\*/g,'\\*').replace(/\//g,'\\/'));
+    dlHtml = dlHtml.replace(re, code);
+    document.getElementById('dlBtn').disabled = false;
+  } catch {
+    dlHtml = '';
+    const code = type === 'events' ? genEventsCode() : genPhotosCode();
+    document.getElementById('dlCode').textContent = code;
+    document.getElementById('dlFallback').style.display = '';
+    document.getElementById('dlBtn').disabled = true;
+  }
+  showModal('dlModal');
+}
+
+function doDownload() {
+  if (!dlHtml) return;
+  const filename = dlType === 'events' ? 'events.html' : 'gallery.html';
+  const blob = new Blob([dlHtml], { type: 'text/html;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  toast('檔案下載中 ✓');
+}
+
+function copyCode() {
+  const txt = document.getElementById('dlCode').textContent;
+  navigator.clipboard.writeText(txt).then(() => {
+    document.getElementById('copyOk').style.display = 'inline';
+    setTimeout(() => document.getElementById('copyOk').style.display = 'none', 2000);
+  });
+}
+
+/* ════════════════════════════════════
+   Code generators
+════════════════════════════════════ */
+function genEventsCode() {
+  const lines = events.map(e => `  {
+    id: ${e.id},
+    title: ${q(e.title)},
+    type: ${q(e.type||'')},
+    date: ${q(e.date)},
+    time: ${q(e.time||'')},
+    location: ${q(e.location||'')},
+    status: ${q(e.status)},
+    desc: ${q(e.desc||'')},
+    detail: ${q(e.detail||'')},
+    contact: ${q(e.contact||'')},
+    fee: ${q(e.fee||'免費')},
+    quota: ${q(e.quota||'不限')},
+    regLink: ${q(e.regLink||'')}
+  }`);
+  return `/* ==EVENTS_DATA_START== */\nconst EVENTS = [\n${lines.join(',\n')}\n];\n/* ==EVENTS_DATA_END== */`;
+}
+
+function genPhotosCode() {
+  const lines = photos.map(p => `  {
+    id: ${p.id},
+    src: ${q(p.src)},
+    title: ${q(p.title)},
+    date: ${q(p.date)},
+    category: ${q(p.category)},
+    desc: ${q(p.desc||'')}
+  }`);
+  return `/* ==PHOTOS_DATA_START== */\nconst PHOTOS = [\n${lines.join(',\n')}\n];\n/* ==PHOTOS_DATA_END== */`;
+}
+
+/* ════════════════════════════════════
+   Helpers
+════════════════════════════════════ */
+function q(s) { return JSON.stringify(String(s)); }
+function nextId(arr) { return arr.length ? Math.max(...arr.map(x => x.id)) + 1 : 1; }
+function today() { return new Date().toISOString().slice(0, 10); }
+
+function showModal(id) { document.getElementById(id).classList.add('on'); }
+function closeModal(id) { document.getElementById(id).classList.remove('on'); }
+
+function switchTab(group, idx) {
+  document.querySelectorAll(`.f-tab`).forEach((t, i) => {
+    const panels = document.querySelectorAll(`#${group}Modal .f-panel`);
+    t.classList.toggle('on', i === idx);
+    if (panels[i]) panels[i].classList.toggle('on', i === idx);
+  });
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+/* ════════════════════════════════════
+   Close modal on backdrop click
+════════════════════════════════════ */
+document.querySelectorAll('.backdrop').forEach(bd => {
+  bd.addEventListener('click', e => { if (e.target === bd) bd.classList.remove('on'); });
+});
+
+/* ════════════════════════════════════
+   Init
+════════════════════════════════════ */
+if (localStorage.getItem('sw_auth') === '1') {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('adminWrap').classList.add('on');
+  updateBadges();
+  renderSection();
+}
+</script>
+</body>
+</html>
