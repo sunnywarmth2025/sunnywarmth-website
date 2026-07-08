@@ -598,16 +598,20 @@ function renderEvents() {
 
 function renderGallery() {
   const CAT_C = { '活動紀錄':'b-活動紀錄','日常生活':'b-日常生活','志工服務':'b-志工服務','培訓課程':'b-培訓課程' };
-  let rows = photos.length ? photos.map(p => {
+  let rows = photos.length ? photos.map((p, idx) => {
     const thumb = p.src
       ? `<img class="thumb" src="${p.src}" alt="${p.title}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><div class="thumb-ph" style="display:none">🖼️</div>`
       : `<div class="thumb-ph">🖼️</div>`;
+    const upDis   = idx === 0 ? 'disabled style="opacity:.3"' : '';
+    const downDis = idx === photos.length - 1 ? 'disabled style="opacity:.3"' : '';
     return `<tr>
       <td><div style="display:flex;align-items:center;gap:10px">${thumb}<span>${p.title}</span></div></td>
       <td>${p.date}</td>
       <td><span class="badge ${CAT_C[p.category]||''}">${p.category}</span></td>
       <td style="color:#aaa;font-size:12px">${p.src}</td>
       <td class="col-actions">
+        <button class="btn btn-ghost btn-sm" onclick="movePhoto(${p.id},-1)" title="上移" ${upDis}>▲</button>
+        <button class="btn btn-ghost btn-sm" onclick="movePhoto(${p.id},1)" title="下移" ${downDis}>▼</button>
         <button class="btn btn-ghost btn-sm" onclick="openPhotoModal(${p.id})">✏️ 編輯</button>
         <button class="btn btn-danger btn-sm" onclick="deletePhoto(${p.id})">🗑 刪除</button>
       </td>
@@ -738,6 +742,16 @@ function deletePhoto(id) {
   if (!confirm(`確定刪除「${p.title}」嗎？`)) return;
   photos = photos.filter(x => x.id !== id);
   save(); renderGallery(); toast('已刪除');
+}
+
+// 上移(dir=-1)/下移(dir=1)照片，順序即為網站顯示順序
+function movePhoto(id, dir) {
+  const i = photos.findIndex(x => x.id === id);
+  if (i < 0) return;
+  const j = i + dir;
+  if (j < 0 || j >= photos.length) return;
+  [photos[i], photos[j]] = [photos[j], photos[i]];
+  save(); renderGallery();
 }
 
 function updatePreview() {
