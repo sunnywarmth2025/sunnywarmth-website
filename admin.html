@@ -758,12 +758,27 @@ function movePhoto(id, dir) {
 
 // 拖曳排序：按住某列拖到目標列，放開後插入到該列前面
 let dragId = null;
-function dragStart(ev, id) { dragId = id; ev.dataTransfer.effectAllowed = 'move'; ev.currentTarget.style.opacity = '.4'; }
-function dragEnd(ev) { ev.currentTarget.style.opacity = ''; document.querySelectorAll('tr').forEach(r => r.style.boxShadow = ''); }
-function dragOver(ev) { ev.preventDefault(); ev.dataTransfer.dropEffect = 'move'; ev.currentTarget.style.boxShadow = 'inset 0 3px 0 var(--vest, #00A0E9)'; }
+let lastDragY = 0, dragScrollTimer = null;
+
+// 拖到 .main 容器上/下緣時自動捲動（清單很長也能拖到定位）
+function dragAutoScroll() {
+  const box = document.querySelector('.main');
+  if (!box) return;
+  const r = box.getBoundingClientRect();
+  const edge = 70;
+  if (lastDragY < r.top + edge)      box.scrollTop -= Math.max(6, (r.top + edge - lastDragY) / 3);
+  else if (lastDragY > r.bottom - edge) box.scrollTop += Math.max(6, (lastDragY - (r.bottom - edge)) / 3);
+}
+function startDragScroll() { if (!dragScrollTimer) dragScrollTimer = setInterval(dragAutoScroll, 16); }
+function stopDragScroll()  { if (dragScrollTimer) { clearInterval(dragScrollTimer); dragScrollTimer = null; } }
+
+function dragStart(ev, id) { dragId = id; ev.dataTransfer.effectAllowed = 'move'; ev.currentTarget.style.opacity = '.4'; startDragScroll(); }
+function dragEnd(ev) { ev.currentTarget.style.opacity = ''; document.querySelectorAll('tr').forEach(r => r.style.boxShadow = ''); stopDragScroll(); }
+function dragOver(ev) { ev.preventDefault(); ev.dataTransfer.dropEffect = 'move'; lastDragY = ev.clientY; ev.currentTarget.style.boxShadow = 'inset 0 3px 0 var(--vest, #00A0E9)'; }
 function dragLeave(ev) { ev.currentTarget.style.boxShadow = ''; }
 function dropOn(ev, targetId) {
   ev.preventDefault();
+  stopDragScroll();
   if (dragId === null || dragId === targetId) return;
   const from = photos.findIndex(x => x.id === dragId);
   if (from < 0) return;
