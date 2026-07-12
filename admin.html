@@ -238,6 +238,16 @@
         <span>生活點滴</span>
         <span class="sb-badge" id="badge-gallery">0</span>
       </div>
+      <div class="sb-item" id="nav-credit" onclick="showSection('credit')">
+        <span class="sb-icon">📋</span>
+        <span>捐款徵信</span>
+        <span class="sb-badge" id="badge-credit">0</span>
+      </div>
+      <div class="sb-item" id="nav-supply" onclick="showSection('supply')">
+        <span class="sb-icon">🎁</span>
+        <span>物資需求</span>
+        <span class="sb-badge" id="badge-supply">0</span>
+      </div>
       <hr class="sb-divider" />
       <div class="sb-label">快速連結</div>
       <div class="sb-item" onclick="window.open('events.html','_blank')">
@@ -245,6 +255,9 @@
       </div>
       <div class="sb-item" onclick="window.open('gallery.html','_blank')">
         <span class="sb-icon">🔗</span><span>相冊頁面</span>
+      </div>
+      <div class="sb-item" onclick="window.open('donate.html','_blank')">
+        <span class="sb-icon">🔗</span><span>捐款頁面</span>
       </div>
       <div class="sb-item" onclick="window.open('index.html','_blank')">
         <span class="sb-icon">🌐</span><span>前台首頁</span>
@@ -401,6 +414,72 @@
   </div>
 </div>
 
+<!-- ═══════════════ CREDIT MODAL ═══════════════ -->
+<div class="backdrop" id="creditModal">
+  <div class="modal">
+    <div class="m-hdr">
+      <div class="m-title" id="creditModalTitle">新增徵信</div>
+      <button class="m-close" onclick="closeModal('creditModal')">✕</button>
+    </div>
+    <div class="m-body">
+      <div class="fg">
+        <label class="fl">標題 <span class="req">*</span></label>
+        <input type="text" id="c_title" class="fc" placeholder="例：2025年5月 捐款芳名單" />
+        <div class="fhint">開頭建議放「2025年5月」，卡片會用空格前的文字當大字顯示</div>
+      </div>
+      <div class="fg">
+        <label class="fl">日期 <span class="req">*</span></label>
+        <input type="date" id="c_date" class="fc" />
+      </div>
+      <div class="fg">
+        <label class="fl">連結（選填）</label>
+        <input type="url" id="c_link" class="fc" placeholder="https://...（PDF／圖片／FB 貼文）" />
+        <div class="fhint">有填連結時，點卡片會直接開這個連結；留空則顯示下方名單文字</div>
+      </div>
+      <div class="fg">
+        <label class="fl">名單內容（選填）</label>
+        <textarea id="c_content" class="fc" rows="6" placeholder="沒有連結時，這裡的名單會在點卡片後彈窗顯示，例：&#10;王○明　$1,000&#10;李○華　$500&#10;（可換行）"></textarea>
+      </div>
+    </div>
+    <div class="m-footer">
+      <button class="btn btn-ghost" onclick="closeModal('creditModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveCredit()">💾 儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SUPPLY MODAL ═══════════════ -->
+<div class="backdrop" id="supplyModal">
+  <div class="modal">
+    <div class="m-hdr">
+      <div class="m-title" id="supplyModalTitle">新增物資</div>
+      <button class="m-close" onclick="closeModal('supplyModal')">✕</button>
+    </div>
+    <div class="m-body">
+      <div class="fg">
+        <label class="fl">品項 <span class="req">*</span></label>
+        <input type="text" id="s_name" class="fc" placeholder="例：白米、二手輪椅、文具用品" />
+      </div>
+      <div class="fg">
+        <label class="fl">狀態 <span class="req">*</span></label>
+        <select id="s_status" class="fc">
+          <option value="需要中">需要中</option>
+          <option value="急需">急需</option>
+          <option value="已募足">已募足</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">說明</label>
+        <textarea id="s_desc" class="fc" rows="3" placeholder="例：用於長者送餐服務，數量不限"></textarea>
+      </div>
+    </div>
+    <div class="m-footer">
+      <button class="btn btn-ghost" onclick="closeModal('supplyModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveSupply()">💾 儲存</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════ DOWNLOAD MODAL ═══════════════ -->
 <div class="backdrop" id="dlModal">
   <div class="modal modal-lg">
@@ -498,11 +577,27 @@ const INIT_PHOTOS = [
   }
 ];
 
+const INIT_CREDITS = [
+  {
+    id:1, title:"2025年5月 捐款芳名單", date:"2025-05-31", link:"",
+    content:"感謝每一位善心捐款人的支持！\n（此為範例，請至後台編輯或新增實際名單）"
+  }
+];
+
+const INIT_SUPPLIES = [
+  {
+    id:1, name:"白米", status:"需要中",
+    desc:"用於長者關懷送餐服務，數量不限。"
+  }
+];
+
 /* ════════════════════════════════════
    State
 ════════════════════════════════════ */
 let events  = JSON.parse(localStorage.getItem('sw_events'))  || JSON.parse(JSON.stringify(INIT_EVENTS));
 let photos  = JSON.parse(localStorage.getItem('sw_photos'))  || JSON.parse(JSON.stringify(INIT_PHOTOS));
+let credits  = JSON.parse(localStorage.getItem('sw_credits'))  || JSON.parse(JSON.stringify(INIT_CREDITS));
+let supplies = JSON.parse(localStorage.getItem('sw_supplies')) || JSON.parse(JSON.stringify(INIT_SUPPLIES));
 let section = 'events';
 let editId  = null;
 let dlType  = 'events';
@@ -511,6 +606,8 @@ let dlHtml  = '';
 function save() {
   localStorage.setItem('sw_events', JSON.stringify(events));
   localStorage.setItem('sw_photos', JSON.stringify(photos));
+  localStorage.setItem('sw_credits', JSON.stringify(credits));
+  localStorage.setItem('sw_supplies', JSON.stringify(supplies));
   updateBadges();
 }
 
@@ -550,6 +647,8 @@ function showSection(s) {
 function updateBadges() {
   document.getElementById('badge-events').textContent = events.length;
   document.getElementById('badge-gallery').textContent = photos.length;
+  document.getElementById('badge-credit').textContent = credits.length;
+  document.getElementById('badge-supply').textContent = supplies.length;
 }
 
 /* ════════════════════════════════════
@@ -557,7 +656,9 @@ function updateBadges() {
 ════════════════════════════════════ */
 function renderSection() {
   if (section === 'events') renderEvents();
-  else renderGallery();
+  else if (section === 'gallery') renderGallery();
+  else if (section === 'credit') renderCredit();
+  else if (section === 'supply') renderSupply();
 }
 
 function renderEvents() {
@@ -634,6 +735,74 @@ function renderGallery() {
       <table>
         <thead><tr>
           <th>照片</th><th>日期</th><th>分類</th><th>檔名</th><th style="text-align:right">操作</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+function renderCredit() {
+  let rows = credits.length ? credits.map(c => `
+    <tr>
+      <td><strong>${c.title}</strong></td>
+      <td>${c.date}</td>
+      <td>${c.link ? '🔗 連結' : (c.content ? '📝 名單文字' : '—')}</td>
+      <td class="col-actions">
+        <button class="btn btn-ghost btn-sm" onclick="openCreditModal(${c.id})">✏️ 編輯</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCredit(${c.id})">🗑 刪除</button>
+      </td>
+    </tr>`).join('') :
+    `<tr><td colspan="4"><div class="empty"><div class="empty-icon">📋</div>尚無徵信資料，點右上角「新增」開始</div></td></tr>`;
+
+  document.getElementById('mainArea').innerHTML = `
+    <div class="pg-hdr">
+      <div class="pg-title">📋 捐款徵信管理</div>
+      <div class="pg-actions">
+        <button class="btn btn-ghost" onclick="sortCreditsByDate()" title="依日期由新到舊重新排列">🗓 依日期排序</button>
+        <button class="btn btn-green" onclick="openDownload('credit')">📥 下載更新檔</button>
+        <button class="btn btn-primary" onclick="openCreditModal(null)">＋ 新增徵信</button>
+      </div>
+    </div>
+    <div class="card">
+      <table>
+        <thead><tr>
+          <th>標題</th><th>日期</th><th>內容</th><th style="text-align:right">操作</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+function renderSupply() {
+  const SC = {
+    '急需':   'color:#c0392b;background:#fdecea',
+    '需要中': 'color:#b8860b;background:#fff4e0',
+    '已募足': 'color:#1a8f4c;background:#e8f6ee'
+  };
+  let rows = supplies.length ? supplies.map(s => `
+    <tr>
+      <td><strong>${s.name}</strong></td>
+      <td><span class="badge" style="${SC[s.status] || SC['需要中']}">${s.status}</span></td>
+      <td style="color:#666">${s.desc || '—'}</td>
+      <td class="col-actions">
+        <button class="btn btn-ghost btn-sm" onclick="openSupplyModal(${s.id})">✏️ 編輯</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteSupply(${s.id})">🗑 刪除</button>
+      </td>
+    </tr>`).join('') :
+    `<tr><td colspan="4"><div class="empty"><div class="empty-icon">🎁</div>尚無物資需求，點右上角「新增」開始</div></td></tr>`;
+
+  document.getElementById('mainArea').innerHTML = `
+    <div class="pg-hdr">
+      <div class="pg-title">🎁 物資需求管理</div>
+      <div class="pg-actions">
+        <button class="btn btn-green" onclick="openDownload('supply')">📥 下載更新檔</button>
+        <button class="btn btn-primary" onclick="openSupplyModal(null)">＋ 新增物資</button>
+      </div>
+    </div>
+    <div class="card">
+      <table>
+        <thead><tr>
+          <th>品項</th><th>狀態</th><th>說明</th><th style="text-align:right">操作</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
@@ -797,6 +966,85 @@ function dropOn(ev, targetId) {
   save(); renderGallery();
 }
 
+/* ════════════════════════════════════
+   Credit（捐款徵信）CRUD
+════════════════════════════════════ */
+function openCreditModal(id) {
+  editId = id;
+  const c = id ? credits.find(x => x.id === id) : null;
+  document.getElementById('creditModalTitle').textContent = id ? '編輯徵信' : '新增徵信';
+  document.getElementById('c_title').value   = c ? c.title : '';
+  document.getElementById('c_date').value    = c ? c.date : today();
+  document.getElementById('c_link').value    = c ? (c.link || '') : '';
+  document.getElementById('c_content').value = c ? (c.content || '') : '';
+  showModal('creditModal');
+}
+function saveCredit() {
+  const title = document.getElementById('c_title').value.trim();
+  const date  = document.getElementById('c_date').value;
+  if (!title || !date) { alert('請填寫標題與日期'); return; }
+  const obj = {
+    id: editId || nextId(credits),
+    title, date,
+    link:    document.getElementById('c_link').value.trim(),
+    content: document.getElementById('c_content').value.trim()
+  };
+  if (editId) {
+    const i = credits.findIndex(x => x.id === editId);
+    credits[i] = obj; toast('徵信已更新 ✓');
+  } else {
+    credits.unshift(obj); toast('徵信已新增 ✓');
+  }
+  save(); closeModal('creditModal'); renderCredit();
+}
+function deleteCredit(id) {
+  const c = credits.find(x => x.id === id);
+  if (!confirm(`確定刪除「${c.title}」嗎？`)) return;
+  credits = credits.filter(x => x.id !== id);
+  save(); renderCredit(); toast('已刪除');
+}
+function sortCreditsByDate() {
+  if (!confirm('確定把徵信依日期由新到舊重新排列嗎？\n（目前手動排的順序會被覆蓋）')) return;
+  credits.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+  save(); renderCredit(); toast('已依日期排序 ✓');
+}
+
+/* ════════════════════════════════════
+   Supply（物資需求）CRUD
+════════════════════════════════════ */
+function openSupplyModal(id) {
+  editId = id;
+  const s = id ? supplies.find(x => x.id === id) : null;
+  document.getElementById('supplyModalTitle').textContent = id ? '編輯物資' : '新增物資';
+  document.getElementById('s_name').value   = s ? s.name : '';
+  document.getElementById('s_status').value = s ? s.status : '需要中';
+  document.getElementById('s_desc').value   = s ? (s.desc || '') : '';
+  showModal('supplyModal');
+}
+function saveSupply() {
+  const name = document.getElementById('s_name').value.trim();
+  if (!name) { alert('請填寫品項名稱'); return; }
+  const obj = {
+    id: editId || nextId(supplies),
+    name,
+    status: document.getElementById('s_status').value,
+    desc:   document.getElementById('s_desc').value.trim()
+  };
+  if (editId) {
+    const i = supplies.findIndex(x => x.id === editId);
+    supplies[i] = obj; toast('物資已更新 ✓');
+  } else {
+    supplies.push(obj); toast('物資已新增 ✓');
+  }
+  save(); closeModal('supplyModal'); renderSupply();
+}
+function deleteSupply(id) {
+  const s = supplies.find(x => x.id === id);
+  if (!confirm(`確定刪除「${s.name}」嗎？`)) return;
+  supplies = supplies.filter(x => x.id !== id);
+  save(); renderSupply(); toast('已刪除');
+}
+
 function updatePreview() {
   const src = document.getElementById('p_src').value.trim();
   const img = document.getElementById('prevImg');
@@ -813,9 +1061,29 @@ function updatePreview() {
 /* ════════════════════════════════════
    Download / Export
 ════════════════════════════════════ */
+// 各區塊對應的檔案（徵信與物資都在 donate.html）
+const DL_FILE = { events:'events.html', gallery:'gallery.html', credit:'donate.html', supply:'donate.html' };
+
+// 依標記名稱替換檔案中的資料區塊
+function replaceBlock(html, name, code) {
+  const esc = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(esc(`/* ==${name}_DATA_START== */`) + '[\\s\\S]*?' + esc(`/* ==${name}_DATA_END== */`));
+  return html.replace(re, code);
+}
+
+// 針對下載類型，把對應資料寫進取回的 HTML
+function buildDl(type, html) {
+  if (type === 'events')  return replaceBlock(html, 'EVENTS', genEventsCode());
+  if (type === 'gallery') return replaceBlock(html, 'PHOTOS', genPhotosCode());
+  // donate.html：一次更新徵信與物資兩區
+  html = replaceBlock(html, 'CREDIT', genCreditCode());
+  html = replaceBlock(html, 'SUPPLY', genSupplyCode());
+  return html;
+}
+
 async function openDownload(type) {
   dlType = type;
-  const filename = type === 'events' ? 'events.html' : 'gallery.html';
+  const filename = DL_FILE[type];
   document.getElementById('dlTitle').textContent = `下載更新後的 ${filename}`;
   document.getElementById('dlNotice').innerHTML =
     `<strong>📥 說明：</strong>下載 <strong>${filename}</strong>，上傳到 GitHub 取代原本的檔案，網站即會自動更新。`;
@@ -824,18 +1092,15 @@ async function openDownload(type) {
   try {
     const res = await fetch(filename + '?t=' + Date.now());
     if (!res.ok) throw new Error('fetch failed');
-    dlHtml = await res.text();
-    const code = type === 'events' ? genEventsCode() : genPhotosCode();
-    const marker_s = type === 'events' ? '/* ==EVENTS_DATA_START== */' : '/* ==PHOTOS_DATA_START== */';
-    const marker_e = type === 'events' ? '/* ==EVENTS_DATA_END== */'   : '/* ==PHOTOS_DATA_END== */';
-    const re = new RegExp(marker_s.replace(/\*/g,'\\*').replace(/\//g,'\\/') +
-      '[\\s\\S]*?' + marker_e.replace(/\*/g,'\\*').replace(/\//g,'\\/'));
-    dlHtml = dlHtml.replace(re, code);
+    dlHtml = buildDl(type, await res.text());
     document.getElementById('dlBtn').disabled = false;
   } catch {
     dlHtml = '';
-    const code = type === 'events' ? genEventsCode() : genPhotosCode();
-    document.getElementById('dlCode').textContent = code;
+    const fb = type === 'events'  ? genEventsCode()
+             : type === 'gallery' ? genPhotosCode()
+             : type === 'credit'  ? genCreditCode()
+             :                      genSupplyCode();
+    document.getElementById('dlCode').textContent = fb;
     document.getElementById('dlFallback').style.display = '';
     document.getElementById('dlBtn').disabled = true;
   }
@@ -844,7 +1109,7 @@ async function openDownload(type) {
 
 function doDownload() {
   if (!dlHtml) return;
-  const filename = dlType === 'events' ? 'events.html' : 'gallery.html';
+  const filename = DL_FILE[dlType];
   const blob = new Blob([dlHtml], { type: 'text/html;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -895,6 +1160,27 @@ function genPhotosCode() {
   return `/* ==PHOTOS_DATA_START== */\nconst PHOTOS = [\n${lines.join(',\n')}\n];\n/* ==PHOTOS_DATA_END== */`;
 }
 
+function genCreditCode() {
+  const lines = credits.map(c => `  {
+    id: ${c.id},
+    title: ${q(c.title)},
+    date: ${q(c.date)},
+    link: ${q(c.link||'')},
+    content: ${q(c.content||'')}
+  }`);
+  return `/* ==CREDIT_DATA_START== */\nconst CREDITS = [\n${lines.join(',\n')}\n];\n/* ==CREDIT_DATA_END== */`;
+}
+
+function genSupplyCode() {
+  const lines = supplies.map(s => `  {
+    id: ${s.id},
+    name: ${q(s.name)},
+    status: ${q(s.status)},
+    desc: ${q(s.desc||'')}
+  }`);
+  return `/* ==SUPPLY_DATA_START== */\nconst SUPPLIES = [\n${lines.join(',\n')}\n];\n/* ==SUPPLY_DATA_END== */`;
+}
+
 /* ════════════════════════════════════
    Helpers
 ════════════════════════════════════ */
@@ -914,7 +1200,7 @@ function switchTab(group, idx) {
 }
 
 function exportBackup() {
-  const data = { events, photos, exportedAt: new Date().toISOString() };
+  const data = { events, photos, credits, supplies, exportedAt: new Date().toISOString() };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -931,9 +1217,13 @@ function importBackup(input) {
     try {
       const data = JSON.parse(e.target.result);
       if (Array.isArray(data.events) && Array.isArray(data.photos)) {
-        if (!confirm(`確定匯入備份嗎？\n活動：${data.events.length} 筆　照片：${data.photos.length} 筆\n（目前後台資料將被取代）`)) return;
+        const nc = Array.isArray(data.credits) ? data.credits.length : 0;
+        const ns = Array.isArray(data.supplies) ? data.supplies.length : 0;
+        if (!confirm(`確定匯入備份嗎？\n活動：${data.events.length} 筆　照片：${data.photos.length} 筆\n徵信：${nc} 筆　物資：${ns} 筆\n（目前後台資料將被取代）`)) return;
         events = data.events;
         photos = data.photos;
+        if (Array.isArray(data.credits))  credits  = data.credits;
+        if (Array.isArray(data.supplies)) supplies = data.supplies;
         save();
         updateBadges();
         renderSection();

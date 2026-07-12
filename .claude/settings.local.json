@@ -11,7 +11,10 @@
       "Bash(awk '/==PHOTOS_DATA_START==/{f=1} f{print NR\": \"$0} /==PHOTOS_DATA_END==/{f=0}' gallery.html)",
       "PowerShell(& 'C:\\\\Users\\\\USER\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-USER-Desktop-sunnywarmth-website\\\\568c080e-fe68-4a83-96cf-fca5386fb9d7\\\\scratchpad\\\\sort_photos.ps1')",
       "Bash(awk '/==PHOTOS_DATA_START==/{f=1} f{print} /id: 3,/{c++; if\\(c>=1 && /^  },/\\){exit}}' gallery.html)",
-      "Bash(awk '/==PHOTOS_DATA_END==/{f=0} /==PHOTOS_DATA_START==/{f=1} f' gallery.html)"
+      "Bash(awk '/==PHOTOS_DATA_END==/{f=0} /==PHOTOS_DATA_START==/{f=1} f' gallery.html)",
+      "PowerShell(& 'C:\\\\Users\\\\USER\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-USER-Desktop-sunnywarmth-website\\\\568c080e-fe68-4a83-96cf-fca5386fb9d7\\\\scratchpad\\\\static-server.ps1')",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri 'http://localhost:8099/donate.html' -UseBasicParsing -TimeoutSec 5; \"donate.html status: $\\($r.StatusCode\\), length: $\\($r.Content.Length\\)\" } catch { \"ERR: $\\($_.Exception.Message\\)\" })",
+      "PowerShell(Get-NetTCPConnection -LocalPort 8099,8098 -State Listen -ErrorAction SilentlyContinue | Select-Object -Expand OwningProcess -Unique | ForEach-Object { try { Stop-Process -Id $_ -Force -ErrorAction Stop; \"killed PID $_\" } catch { \"could not kill $_\" } }; Remove-Item 'C:\\\\Users\\\\USER\\\\Desktop\\\\sunnywarmth-website\\\\.claude\\\\launch.json' -Force -ErrorAction SilentlyContinue; if \\(Test-Path 'C:\\\\Users\\\\USER\\\\Desktop\\\\sunnywarmth-website\\\\.claude\\\\launch.json'\\) { 'launch.json still exists' } else { 'launch.json removed' })"
     ]
   }
 }

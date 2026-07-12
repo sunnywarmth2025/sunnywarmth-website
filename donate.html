@@ -122,12 +122,57 @@
     .faq-a { display:none; padding:0 22px 16px; font-size:.88rem; color:var(--text-soft); line-height:1.8; }
     .faq-item.open .faq-a { display:block; }
 
+    /* 徵信芳名錄 */
+    .credit-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; }
+    .credit-card { cursor:pointer; text-align:center; transition:transform .2s; }
+    .credit-card:hover { transform:translateY(-4px); }
+    .credit-thumb {
+      position:relative; border-radius:16px; padding:38px 16px 30px;
+      background:linear-gradient(150deg,var(--vest-pale),var(--white));
+      border:1.5px solid var(--vest-light); box-shadow:0 4px 16px var(--shadow);
+    }
+    .credit-thumb::before, .credit-thumb::after {
+      content:''; position:absolute; top:-8px; width:46px; height:20px;
+      background:var(--logo-pink); opacity:.7; border-radius:3px;
+    }
+    .credit-thumb::before { left:18px; transform:rotate(-14deg); }
+    .credit-thumb::after  { right:18px; transform:rotate(14deg); }
+    .credit-month { font-size:1.35rem; font-weight:900; color:var(--vest-deep); letter-spacing:1px; }
+    .credit-label { margin-top:6px; font-size:.95rem; font-weight:700; color:var(--text-soft); letter-spacing:3px; }
+    .credit-caption { margin-top:12px; font-size:.9rem; font-weight:700; color:var(--vest-deep); }
+    .credit-empty, .supply-empty { grid-column:1/-1; text-align:center; color:var(--text-soft); padding:30px; }
+
+    /* 徵信彈窗 */
+    .credit-lb { display:none; position:fixed; inset:0; z-index:1000;
+      background:rgba(0,0,0,.55); align-items:center; justify-content:center; padding:24px; }
+    .credit-lb.open { display:flex; }
+    .credit-lb-box { background:var(--white); border-radius:18px; max-width:520px; width:100%;
+      max-height:80vh; overflow:auto; padding:28px 30px; position:relative; }
+    .credit-lb-close { position:absolute; top:14px; right:16px; border:none; background:none;
+      font-size:20px; color:#999; cursor:pointer; }
+    .credit-lb-box h3 { font-size:1.15rem; color:var(--vest-deep); margin-bottom:16px; padding-right:24px; }
+    .credit-lb-body { font-size:.92rem; color:var(--text-soft); line-height:1.9; white-space:pre-line; }
+
+    /* 物資需求 */
+    .supply-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+    .supply-card { background:var(--white); border-radius:16px; padding:22px;
+      box-shadow:0 3px 14px var(--shadow); border-left:4px solid var(--vest); }
+    .supply-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+    .supply-name { font-size:1.05rem; font-weight:800; color:var(--vest-deep); }
+    .supply-badge { font-size:.72rem; font-weight:700; padding:3px 10px; border-radius:20px; white-space:nowrap; }
+    .supply-badge.urgent { background:#fdecea; color:#c0392b; }
+    .supply-badge.need   { background:#fff4e0; color:#b8860b; }
+    .supply-badge.done   { background:#e8f6ee; color:#1a8f4c; }
+    .supply-desc { font-size:.86rem; color:var(--text-soft); line-height:1.7; }
+
     @media(max-width:768px){
       .impact-grid { grid-template-columns:1fr 1fr; }
       .epay-layout { grid-template-columns:1fr; }
       .epay-grid   { grid-template-columns:repeat(3,1fr); }
       .receipt-steps { grid-template-columns:1fr; }
       .donate-tabs { overflow-x:auto; }
+      .credit-grid { grid-template-columns:1fr 1fr; }
+      .supply-grid { grid-template-columns:1fr; }
     }
     @media(max-width:480px){
       .epay-grid { grid-template-columns:repeat(2,1fr); }
@@ -300,6 +345,35 @@
   </div>
 </section>
 
+<!-- 捐款徵信 -->
+<section class="section" style="background:var(--vest-cream)">
+  <div class="container">
+    <div class="section-head-center">
+      <span class="section-badge">📋 捐款徵信</span>
+      <h2 class="section-title">捐款芳名錄</h2>
+      <p class="section-desc">感謝每一位善心捐款人，我們定期公開徵信，讓每一份愛心公開透明</p>
+    </div>
+    <div class="credit-grid" id="credit-grid"></div>
+  </div>
+</section>
+
+<!-- 物資需求 -->
+<section class="section section-light">
+  <div class="container">
+    <div class="section-head-center">
+      <span class="section-badge">🎁 物資需求</span>
+      <h2 class="section-title">我們目前需要這些物資</h2>
+      <p class="section-desc">除了金錢捐款，您捐贈的物資也能直接成為服務的助力</p>
+    </div>
+    <div class="supply-grid" id="supply-grid"></div>
+    <div class="epay-note" style="max-width:none;margin-top:24px">
+      📌 若您有意捐贈物資，歡迎透過
+      <a href="https://lin.ee/Nr1C5TR" target="_blank" rel="noopener"><strong>官方 LINE</strong></a>
+      或來電 <strong>0917-669726</strong> 與我們聯繫，確認需求與交寄方式。
+    </div>
+  </div>
+</section>
+
 <!-- 收據申請 -->
 <section class="section" style="background:var(--vest-pale)">
   <div class="container">
@@ -371,6 +445,15 @@
   </div>
 </section>
 
+<!-- 徵信名單彈窗 -->
+<div class="credit-lb" id="creditLb">
+  <div class="credit-lb-box">
+    <button class="credit-lb-close" onclick="closeCredit()" aria-label="關閉">✕</button>
+    <h3 id="clb-title"></h3>
+    <div class="credit-lb-body" id="clb-body"></div>
+  </div>
+</div>
+
 <footer class="site-footer">
   <div class="footer-top">
     <div class="footer-brand">
@@ -430,6 +513,78 @@ document.getElementById('hamburger').addEventListener('click', function(){
   m.classList.toggle('open');
   document.body.style.overflow = m.classList.contains('open')?'hidden':'';
 });
+</script>
+
+<script>
+/* ==CREDIT_DATA_START== */
+const CREDITS = [
+  {
+    id: 1,
+    title: "2025年5月 捐款芳名單",
+    date: "2025-05-31",
+    link: "",
+    content: "感謝每一位善心捐款人的支持！\n（此為範例，請至後台編輯或新增實際名單）"
+  }
+];
+/* ==CREDIT_DATA_END== */
+
+/* ==SUPPLY_DATA_START== */
+const SUPPLIES = [
+  {
+    id: 1,
+    name: "白米",
+    status: "需要中",
+    desc: "用於長者關懷送餐服務，數量不限。"
+  }
+];
+/* ==SUPPLY_DATA_END== */
+
+// 徵信芳名錄
+function renderCredits() {
+  const grid = document.getElementById('credit-grid');
+  if (!grid) return;
+  if (!CREDITS.length) { grid.innerHTML = '<p class="credit-empty">徵信資料準備中，敬請期待。</p>'; return; }
+  grid.innerHTML = CREDITS.map(c => {
+    const month = (c.title || '').split(' ')[0];
+    return `<div class="credit-card" onclick="openCredit(${c.id})">
+      <div class="credit-thumb">
+        <div class="credit-month">${month}</div>
+        <div class="credit-label">捐款芳名錄</div>
+      </div>
+      <div class="credit-caption">${c.title}</div>
+    </div>`;
+  }).join('');
+}
+function openCredit(id) {
+  const c = CREDITS.find(x => x.id === id);
+  if (!c) return;
+  if (c.link) { window.open(c.link, '_blank', 'noopener'); return; }
+  document.getElementById('clb-title').textContent = c.title;
+  document.getElementById('clb-body').textContent = c.content || '（尚無名單內容）';
+  document.getElementById('creditLb').classList.add('open');
+}
+function closeCredit() { document.getElementById('creditLb').classList.remove('open'); }
+document.getElementById('creditLb').addEventListener('click', e => {
+  if (e.target.id === 'creditLb') closeCredit();
+});
+
+// 物資需求
+function renderSupplies() {
+  const grid = document.getElementById('supply-grid');
+  if (!grid) return;
+  if (!SUPPLIES.length) { grid.innerHTML = '<p class="supply-empty">目前沒有物資需求，感謝您的關心。</p>'; return; }
+  const SC = { '急需':'urgent', '需要中':'need', '已募足':'done' };
+  grid.innerHTML = SUPPLIES.map(s => `<div class="supply-card">
+    <div class="supply-head">
+      <span class="supply-name">${s.name}</span>
+      <span class="supply-badge ${SC[s.status] || 'need'}">${s.status}</span>
+    </div>
+    <p class="supply-desc">${s.desc || ''}</p>
+  </div>`).join('');
+}
+
+renderCredits();
+renderSupplies();
 </script>
 </body>
 </html>
