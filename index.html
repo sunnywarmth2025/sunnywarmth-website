@@ -86,21 +86,27 @@
     .value-row h4 { font-size:.92rem; font-weight:700; color:var(--vest-deep); margin-bottom:2px; }
     .value-row p  { font-size:.82rem; color:var(--text-soft); margin:0; }
 
-    /* Services */
-    .services-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
-    .service-card { border-radius:20px; overflow:hidden; box-shadow:0 4px 18px var(--shadow); transition:transform .25s,box-shadow .25s; }
-    .service-card:hover { transform:translateY(-6px); box-shadow:0 12px 32px rgba(13,47,69,.15); }
-    .service-card-top { padding:32px 24px 20px; background:linear-gradient(135deg,var(--vest-pale),#e0eef8); }
-    .service-card:nth-child(2) .service-card-top { background:linear-gradient(135deg,#fef0f2,#fcd6dc); }
-    .service-card:nth-child(3) .service-card-top { background:linear-gradient(135deg,#f0fbf4,#d5f0e1); }
-    .s-icon { font-size:2.8rem; margin-bottom:14px; }
-    .service-card-top h3 { font-size:1.1rem; font-weight:700; color:var(--vest-deep); margin-bottom:8px; }
-    .service-card:nth-child(2) .service-card-top h3 { color:#a02040; }
-    .service-card:nth-child(3) .service-card-top h3 { color:#1a6640; }
-    .service-card-body { padding:18px 24px 24px; background:var(--white); }
-    .service-card-body p { font-size:.88rem; color:var(--text-soft); line-height:1.8; margin-bottom:14px; }
-    .service-card-body a { font-size:.85rem; color:var(--vest); font-weight:600; }
-    .service-card-body a:hover { color:var(--vest-deep); text-decoration:underline; }
+    /* Services — 核心服務（首頁直接呈現） */
+    .core-service-card {
+      background:linear-gradient(135deg,var(--vest-pale),var(--vest-light));
+      border-radius:24px; padding:44px 40px;
+      display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:center;
+      box-shadow:0 6px 24px var(--shadow);
+    }
+    .cs-icon { font-size:3.4rem; margin-bottom:14px; }
+    .core-service-card h3 { font-size:1.5rem; font-weight:800; color:var(--vest-deep); margin-bottom:14px; line-height:1.4; }
+    .core-service-card .cs-intro { color:var(--text-soft); line-height:1.9; margin-bottom:8px; font-size:.95rem; }
+    .cs-tags { display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; }
+    .cs-tag { background:var(--vest); color:var(--white); border-radius:20px; padding:4px 14px; font-size:.8rem; font-weight:700; }
+    .cs-steps-box { background:var(--white); border-radius:20px; padding:30px 28px; box-shadow:0 4px 16px var(--shadow); }
+    .cs-steps-box h4 { font-size:.95rem; font-weight:700; color:var(--vest-deep); margin-bottom:18px; }
+    .cs-steps { display:flex; flex-direction:column; gap:16px; }
+    .cs-step { display:flex; align-items:flex-start; gap:14px; }
+    .cs-num { width:32px; height:32px; border-radius:50%; background:var(--vest); color:var(--white);
+      display:flex; align-items:center; justify-content:center; font-size:.85rem; font-weight:700; flex-shrink:0; }
+    .cs-step h5 { font-size:.9rem; font-weight:700; color:var(--text-main); margin-bottom:2px; }
+    .cs-step p { font-size:.85rem; color:var(--text-soft); line-height:1.7; margin:2px 0 0; }
+    @media(max-width:900px){ .core-service-card { grid-template-columns:1fr; padding:32px 24px; gap:32px; } }
 
     /* News */
     .news-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
@@ -213,18 +219,28 @@
       <h2 class="section-title">多元服務，守護每個角落</h2>
       <p class="section-desc">從身障就業培訓到弱勢族群關懷，我們的服務涵蓋社區中每一個需要被照顧的群體</p>
     </div>
-    <div class="services-grid">
-      <div class="service-card">
-        <div class="service-card-top"><div class="s-icon">💼</div><h3>身障就業培訓</h3><p style="font-size:.88rem;color:var(--text-soft);line-height:1.7">提供友善職場環境，協助身心障礙者建立工作技能，達成自立自養的目標。</p></div>
-        <div class="service-card-body"><p>職業技能培訓・就業媒合・職場適應輔導・獨立生活技能</p><a href="services.html">了解更多 →</a></div>
+    <div class="core-service-card">
+      <div>
+        <div class="cs-icon">💼</div>
+        <h3>無限感恩，支持身障就業培訓</h3>
+        <p class="cs-intro">提供一個友善、包容的職場工作環境，培養身心障礙者獨立生活的能力，增進其工作技能，期望有天能自立自養，融入社會，改善家庭的經濟負擔。</p>
+        <p class="cs-intro">我們相信每一位身心障礙者都擁有獨特的潛能，只要給予適當的支持與機會，便能在職場上發光發熱。</p>
+        <div class="cs-tags">
+          <span class="cs-tag">職業技能培訓</span>
+          <span class="cs-tag">就業媒合</span>
+          <span class="cs-tag">職場適應輔導</span>
+          <span class="cs-tag">獨立生活技能</span>
+        </div>
+        <a href="services.html" class="btn btn-primary" style="margin-top:24px">查看完整服務項目 →</a>
       </div>
-      <div class="service-card">
-        <div class="service-card-top"><div class="s-icon">🤝</div><h3>弱勢族群支持</h3><p style="font-size:.88rem;color:#7a4050;line-height:1.7">協助兒少、婦女、老人等弱勢族群，提供多面向的生活支持與關懷服務。</p></div>
-        <div class="service-card-body"><p>兒少關懷・婦女支持・長者陪伴・家庭輔導</p><a href="services.html" style="color:var(--logo-pink)">了解更多 →</a></div>
-      </div>
-      <div class="service-card">
-        <div class="service-card-top"><div class="s-icon">🌱</div><h3>社區活動推廣</h3><p style="font-size:.88rem;color:#1a5a30;line-height:1.7">舉辦各類型社區活動與課程，凝聚社區溫情，促進融合共好。</p></div>
-        <div class="service-card-body"><p>技藝課程・義賣活動・社區培力・志工招募</p><a href="services.html" style="color:var(--green)">了解更多 →</a></div>
+      <div class="cs-steps-box">
+        <h4>📋 服務流程</h4>
+        <div class="cs-steps">
+          <div class="cs-step"><div class="cs-num">1</div><div><h5>初次評估</h5><p>了解身心狀況、能力與就業意願，制定個別化服務計畫。</p></div></div>
+          <div class="cs-step"><div class="cs-num">2</div><div><h5>技能培訓</h5><p>依個人特質安排職業技能訓練，循序漸進建立工作能力。</p></div></div>
+          <div class="cs-step"><div class="cs-num">3</div><div><h5>就業媒合</h5><p>與在地企業合作，媒合適合的工作機會與友善職場。</p></div></div>
+          <div class="cs-step"><div class="cs-num">4</div><div><h5>持續追蹤</h5><p>定期追蹤就業狀況，提供職場適應輔導與後續支持。</p></div></div>
+        </div>
       </div>
     </div>
   </div>
@@ -288,26 +304,49 @@ document.getElementById('hamburger').addEventListener('click', function(){
   document.body.style.overflow = m.classList.contains('open') ? 'hidden' : '';
 });
 
-// 首頁活動預覽
-const EVENTS = [
-  { title:"夏日愛心送餐志工招募", type:"志工招募", date:"2025-07-15", location:"南投縣草屯鎮", status:"open",  desc:"招募愛心志工，協助為獨居長者送餐，把溫暖送到長輩家門口。" },
-  { title:"親子手作藝術工作坊",   type:"藝術療癒", date:"2025-07-27", location:"草屯服務據點",   status:"open",  desc:"以植物染技法製作親子布袋，讓親子在創作中建立連結與療癒。" },
-  { title:"心理健康講座：與焦慮和平共處", type:"講座", date:"2025-08-09", location:"線上（Zoom）",  status:"soon",  desc:"邀請臨床心理師分享辨識焦慮訊號與自我調節方法。" },
-];
+// 首頁活動預覽：自動同步 events.html（後台管理那份），點卡片跳到活動頁並開啟詳情
 const STATUS = { open:{t:"報名中",c:"status-open"}, soon:{t:"即將開始",c:"status-soon"}, full:{t:"額滿",c:"status-full"}, ended:{t:"已結束",c:"status-ended"} };
-document.getElementById('home-events').innerHTML = EVENTS.map(ev => {
-  const [,m,d] = ev.date.split('-');
-  const s = STATUS[ev.status];
-  return `<div class="news-card"><div class="news-card-inner">
-    <span class="news-tag">${ev.type}</span>
-    <h3>${ev.title}</h3><p>${ev.desc}</p>
-    <div class="news-meta">
-      <span>🗓 ${+m}月${+d}日</span>
-      <span>📍 ${ev.location}</span>
-      <span class="news-status ${s.c}">${s.t}</span>
-    </div>
-  </div></div>`;
-}).join('');
+
+async function loadHomeEvents() {
+  const grid = document.getElementById('home-events');
+  try {
+    const res = await fetch('events.html?t=' + Date.now());
+    if (!res.ok) throw new Error('fetch failed');
+    const text = await res.text();
+    const block = text.match(/==EVENTS_DATA_START==([\s\S]*?)==EVENTS_DATA_END==/);
+    const arr = block && block[1].match(/const\s+EVENTS\s*=\s*(\[[\s\S]*\])\s*;/);
+    if (!arr) throw new Error('no data');
+    const ALL = new Function('return ' + arr[1])();
+
+    // 優先顯示未結束的活動（近的在前），不足再補最近的已結束活動，最多 3 筆
+    const up   = ALL.filter(e => e.status !== 'ended').sort((a,b) => a.date < b.date ? -1 : 1);
+    const done = ALL.filter(e => e.status === 'ended').sort((a,b) => a.date > b.date ? -1 : 1);
+    const list = up.concat(done).slice(0, 3);
+
+    if (!list.length) {
+      grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--text-soft);padding:30px">近期尚無活動公告，敬請期待！</p>';
+      return;
+    }
+    grid.innerHTML = list.map(ev => {
+      const [, m, d] = ev.date.split('-');
+      const s = STATUS[ev.status] || STATUS.open;
+      return `<a class="news-card" href="events.html?id=${ev.id}" style="text-decoration:none;display:block">
+        <div class="news-card-inner">
+          <span class="news-tag">${ev.type || ''}</span>
+          <h3>${ev.title}</h3><p>${ev.desc || ''}</p>
+          <div class="news-meta">
+            <span>🗓 ${+m}月${+d}日</span>
+            <span>📍 ${ev.location || ''}</span>
+            <span class="news-status ${s.c}">${s.t}</span>
+          </div>
+        </div>
+      </a>`;
+    }).join('');
+  } catch (e) {
+    grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--text-soft);padding:30px">請前往<a href="events.html" style="color:var(--vest-deep);font-weight:700">活動公告頁</a>查看最新活動。</p>';
+  }
+}
+loadHomeEvents();
 </script>
 </body>
 </html>
