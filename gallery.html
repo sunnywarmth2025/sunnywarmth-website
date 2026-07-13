@@ -66,13 +66,13 @@
       font-size: .78rem; opacity: .82;
     }
 
-    /* 類別標籤（左上角） */
+    /* 類別標籤（右下角，避免擋到人像頭部） */
     .gallery-cat-badge {
-      position: absolute; top: 12px; left: 12px;
+      position: absolute; bottom: 12px; right: 12px;
       background: var(--vest); color: var(--white);
       font-size: .72rem; font-weight: 700;
       border-radius: 10px; padding: 3px 10px;
-      z-index: 1;
+      z-index: 2;
     }
 
     /* 燈箱 */
@@ -762,7 +762,7 @@ const PHOTOS = [
 /* ==PHOTOS_DATA_END== */
 
 // ── 以下為程式邏輯，一般不需修改 ──
-const MONTHS = ["一","二","三","四","五","六","七","八","九","十","十一","十二"];
+const MONTHS = ["1","2","3","4","5","6","7","8","9","10","11","12"];
 
 // 自動補齊圖片路徑：後台只填檔名（例「20251104草屯」）也能顯示。
 // 已含 gallery/ 或完整網址則原樣使用；沒有副檔名時自動補 .jpg。
