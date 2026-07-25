@@ -27,7 +27,8 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; font-size: 16px; }
 body {
-  font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+  /* 英文與數字 → Times New Roman；中文 → 標楷體（Times 無中文字形，會自動落到標楷體） */
+  font-family: "Times New Roman", Times, "標楷體", DFKai-SB, BiauKai, "Noto Sans TC", serif;
   background: var(--white);
   color: var(--text-main);
   line-height: 1.8;
