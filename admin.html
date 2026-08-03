@@ -259,6 +259,9 @@
       <div class="sb-item" onclick="window.open('donate.html','_blank')">
         <span class="sb-icon">🔗</span><span>捐款頁面</span>
       </div>
+      <div class="sb-item" onclick="window.open('participate.html','_blank')">
+        <span class="sb-icon">🔗</span><span>參與我們頁</span>
+      </div>
       <div class="sb-item" onclick="window.open('index.html','_blank')">
         <span class="sb-icon">🌐</span><span>前台首頁</span>
       </div>
@@ -1062,7 +1065,7 @@ function updatePreview() {
    Download / Export
 ════════════════════════════════════ */
 // 各區塊對應的檔案（徵信與物資都在 donate.html）
-const DL_FILE = { events:'events.html', gallery:'gallery.html', credit:'donate.html', supply:'donate.html' };
+const DL_FILE = { events:'events.html', gallery:'gallery.html', credit:'donate.html', supply:'participate.html' };
 
 // 依標記名稱替換檔案中的資料區塊
 function replaceBlock(html, name, code) {
@@ -1075,10 +1078,8 @@ function replaceBlock(html, name, code) {
 function buildDl(type, html) {
   if (type === 'events')  return replaceBlock(html, 'EVENTS', genEventsCode());
   if (type === 'gallery') return replaceBlock(html, 'PHOTOS', genPhotosCode());
-  // donate.html：一次更新徵信與物資兩區
-  html = replaceBlock(html, 'CREDIT', genCreditCode());
-  html = replaceBlock(html, 'SUPPLY', genSupplyCode());
-  return html;
+  if (type === 'credit')  return replaceBlock(html, 'CREDIT', genCreditCode()); // donate.html
+  return replaceBlock(html, 'SUPPLY', genSupplyCode());                          // participate.html
 }
 
 async function openDownload(type) {
