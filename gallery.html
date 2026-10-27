@@ -122,6 +122,53 @@
     }
     .lightbox-close:hover { background: rgba(255,255,255,.32); }
 
+    /* 卡片媒體標記（影片 / 多圖） */
+    .gallery-media-badge {
+      position: absolute; top: 12px; left: 12px; z-index: 2;
+      display: flex; gap: 6px;
+    }
+    .gallery-media-badge span {
+      background: rgba(0,0,0,.6); color: #fff;
+      font-size: .72rem; font-weight: 700;
+      border-radius: 10px; padding: 3px 9px;
+      display: inline-flex; align-items: center; gap: 3px;
+    }
+
+    /* 燈箱輪播舞台 */
+    .lightbox-stage {
+      position: relative; background: #000;
+      display: flex; align-items: center; justify-content: center;
+      max-height: 60vh; overflow: hidden;
+    }
+    .lightbox-stage img {
+      width: 100%; max-height: 60vh; object-fit: contain; display: block;
+    }
+    .lb-video { width: 100%; aspect-ratio: 16/9; background: #000; }
+    .lb-video iframe { width: 100%; height: 100%; border: 0; display: block; }
+    .lb-video-link {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 10px; width: 100%; aspect-ratio: 16/9; color: #fff; text-decoration: none;
+      background: linear-gradient(135deg, var(--vest-deep), var(--vest));
+    }
+    .lb-video-link .play { font-size: 3rem; }
+    .lb-video-link span { font-size: .95rem; font-weight: 700; }
+    .lb-nav {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      background: rgba(255,255,255,.22); border: none; color: #fff;
+      width: 42px; height: 42px; border-radius: 50%; cursor: pointer;
+      font-size: 1.6rem; line-height: 1; display: flex; align-items: center; justify-content: center;
+      z-index: 3001; transition: background .2s;
+    }
+    .lb-nav:hover { background: rgba(255,255,255,.4); }
+    .lb-prev { left: 12px; }
+    .lb-next { right: 12px; }
+    .lb-dots {
+      display: flex; gap: 7px; justify-content: center;
+      padding: 12px 0 0;
+    }
+    .lb-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--vest-light); cursor: pointer; border: none; padding: 0; }
+    .lb-dot.on { background: var(--vest); }
+
     /* 空白提示 */
     .no-photos {
       grid-column: 1/-1; text-align: center;
@@ -201,10 +248,13 @@
 <div class="lightbox" id="lightbox">
   <button class="lightbox-close" id="lightbox-close">✕</button>
   <div class="lightbox-box">
-    <div class="lightbox-img-wrap">
-      <img id="lb-img" src="" alt="" />
+    <div class="lightbox-stage" id="lb-stage">
+      <div id="lb-media"></div>
+      <button class="lb-nav lb-prev" id="lb-prev" aria-label="上一張">‹</button>
+      <button class="lb-nav lb-next" id="lb-next" aria-label="下一張">›</button>
     </div>
     <div class="lightbox-info">
+      <div class="lb-dots" id="lb-dots"></div>
       <h3 id="lb-title"></h3>
       <div class="lb-meta" id="lb-meta"></div>
       <p class="lb-desc" id="lb-desc"></p>
@@ -786,7 +836,13 @@ function renderGallery(cat) {
   grid.innerHTML = list.map(p => {
     const d = new Date(p.date);
     const dateStr = `${d.getFullYear()} 年 ${MONTHS[d.getMonth()]} 月`;
+    const imgCount = 1 + ((p.images && p.images.length) || 0);
+    const badges = [];
+    if (p.video) badges.push('<span>▶ 影片</span>');
+    if (imgCount > 1) badges.push(`<span>📷 ${imgCount}</span>`);
+    const mediaBadge = badges.length ? `<div class="gallery-media-badge">${badges.join('')}</div>` : '';
     return `<div class="gallery-card" onclick="openLightbox(${p.id})">
+      ${mediaBadge}
       <span class="gallery-cat-badge">${p.category}</span>
       <img src="${photoSrc(p.src)}" alt="${p.title}" loading="lazy" />
       <div class="gallery-card-overlay">
@@ -797,22 +853,68 @@ function renderGallery(cat) {
   }).join('');
 }
 
+// 燈箱輪播：影片 + 多圖
+let lbMedia = [];
+let lbIndex = 0;
+
+// 從各種 YouTube 網址取出影片 ID（watch / youtu.be / shorts / live / embed）
+function ytId(url) {
+  const m = String(url || '').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/))([\w-]{11})/);
+  return m ? m[1] : null;
+}
+
+function buildMedia(p) {
+  const media = [];
+  if (p.video) media.push({ type: 'video', url: p.video });
+  media.push({ type: 'img', src: photoSrc(p.src), alt: p.title });
+  (p.images || []).forEach(im => media.push({ type: 'img', src: photoSrc(im), alt: p.title }));
+  return media;
+}
+
+function renderLbMedia() {
+  const stage = document.getElementById('lb-media');
+  const item = lbMedia[lbIndex];
+  if (!item) { stage.innerHTML = ''; return; }
+  if (item.type === 'video') {
+    const id = ytId(item.url);
+    stage.innerHTML = id
+      ? `<div class="lb-video"><iframe src="https://www.youtube-nocookie.com/embed/${id}" title="影片" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`
+      : `<a class="lb-video-link" href="${item.url}" target="_blank" rel="noopener"><span class="play">▶</span><span>觀看影片</span></a>`;
+  } else {
+    stage.innerHTML = `<img src="${item.src}" alt="${item.alt || ''}" />`;
+  }
+  const many = lbMedia.length > 1;
+  document.getElementById('lb-prev').style.display = many ? '' : 'none';
+  document.getElementById('lb-next').style.display = many ? '' : 'none';
+  const dots = document.getElementById('lb-dots');
+  dots.innerHTML = many
+    ? lbMedia.map((_, i) => `<button class="lb-dot ${i === lbIndex ? 'on' : ''}" onclick="lbGo(${i})" aria-label="第${i + 1}項"></button>`).join('')
+    : '';
+}
+
+function lbGo(i) {
+  lbIndex = (i + lbMedia.length) % lbMedia.length;
+  renderLbMedia();
+}
+
 function openLightbox(id) {
   const p = PHOTOS.find(x => x.id === id);
   if (!p) return;
   const d = new Date(p.date);
-  document.getElementById('lb-img').src = photoSrc(p.src);
-  document.getElementById('lb-img').alt = p.title;
+  lbMedia = buildMedia(p);
+  lbIndex = 0;
+  renderLbMedia();
   document.getElementById('lb-title').textContent = p.title;
   document.getElementById('lb-meta').textContent =
     `${p.category}　｜　${d.getFullYear()} 年 ${MONTHS[d.getMonth()]} 月 ${d.getDate()} 日`;
-  document.getElementById('lb-desc').textContent = p.desc;
+  document.getElementById('lb-desc').textContent = p.desc || '';
   document.getElementById('lightbox').classList.add('active');
   document.body.style.overflow = 'hidden';
 }
 
 function closeLightbox() {
   document.getElementById('lightbox').classList.remove('active');
+  document.getElementById('lb-media').innerHTML = ''; // 清空以停止影片播放
   document.body.style.overflow = '';
 }
 
@@ -832,6 +934,16 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
 document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
 document.getElementById('lightbox').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeLightbox();
+});
+
+// 燈箱左右翻頁
+document.getElementById('lb-prev').addEventListener('click', e => { e.stopPropagation(); lbGo(lbIndex - 1); });
+document.getElementById('lb-next').addEventListener('click', e => { e.stopPropagation(); lbGo(lbIndex + 1); });
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('lightbox').classList.contains('active')) return;
+  if (e.key === 'Escape') closeLightbox();
+  else if (e.key === 'ArrowLeft' && lbMedia.length > 1) lbGo(lbIndex - 1);
+  else if (e.key === 'ArrowRight' && lbMedia.length > 1) lbGo(lbIndex + 1);
 });
 
 // Hamburger

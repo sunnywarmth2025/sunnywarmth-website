@@ -19,7 +19,10 @@
       "mcp__claude-in-chrome__navigate",
       "mcp__claude-in-chrome__computer",
       "mcp__claude-in-chrome__resize_window",
-      "mcp__claude-in-chrome__javascript_tool"
+      "mcp__claude-in-chrome__javascript_tool",
+      "Bash(awk '{printf \"%.0f KB\\\\t%s\\\\n\", $1/1024, $2}')",
+      "Bash(awk '{s+=$1; n++} END{printf \"%d 張, 共 %.1f MB\\\\n\", n, s/1048576}')",
+      "PowerShell($rootFile = 'C:\\\\Users\\\\USER\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-USER-OneDrive-Desktop-------sunnywarmth-website\\\\b8fd8dbf-b46b-4c5a-865d-49e395bf23f6\\\\scratchpad\\\\root.txt'; $Root = [System.IO.File]::ReadAllText\\($rootFile, [System.Text.Encoding]::UTF8\\).Trim\\(\\); \"Root len: $\\($Root.Length\\)\"; \"gallery exists: $\\(Test-Path -LiteralPath \\(Join-Path $Root 'gallery.html'\\)\\)\"; \"admin exists: $\\(Test-Path -LiteralPath \\(Join-Path $Root 'admin.html'\\)\\)\")"
     ]
   }
 }

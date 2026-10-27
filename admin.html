@@ -266,6 +266,11 @@
         <span class="sb-icon">🌐</span><span>前台首頁</span>
       </div>
       <hr class="sb-divider" />
+      <div class="sb-label">資料來源：線上</div>
+      <div class="sb-item" onclick="reloadFromLive()">
+        <span class="sb-icon">🔄</span><span>從線上重新載入</span>
+      </div>
+      <hr class="sb-divider" />
       <div class="sb-label">資料備份</div>
       <div class="sb-item" onclick="exportBackup()">
         <span class="sb-icon">💾</span><span>匯出備份 JSON</span>
@@ -408,6 +413,16 @@
       <div class="fg" style="margin-top:14px">
         <label class="fl">照片說明</label>
         <textarea id="p_desc" class="fc" rows="3" placeholder="照片說明文字（燈箱展開後顯示）..."></textarea>
+      </div>
+      <div class="fg" style="margin-top:14px">
+        <label class="fl">更多圖片（選填）</label>
+        <textarea id="p_images" class="fc" rows="3" placeholder="一行填一個檔名，點進去會變成可左右翻的相簿，例：&#10;20251104草屯-1&#10;20251104草屯-2"></textarea>
+        <div class="fhint">上面「照片檔名」是封面；這裡多填的圖片一樣放 gallery/ 資料夾</div>
+      </div>
+      <div class="fg" style="margin-top:14px">
+        <label class="fl">影片連結（選填）</label>
+        <input type="url" id="p_video" class="fc" placeholder="貼 YouTube 網址，例：https://youtu.be/xxxxxxxxxxx" />
+        <div class="fhint">YouTube 會直接嵌在頁面播放；其他網址會顯示「▶ 觀看影片」按鈕</div>
       </div>
     </div>
     <div class="m-footer">
@@ -615,16 +630,64 @@ function save() {
 }
 
 /* ════════════════════════════════════
+   從線上載入資料（不綁單一電腦）
+   開啟後台時自動抓已發佈網頁的最新資料，
+   任何電腦打開都看得到最新內容。
+════════════════════════════════════ */
+function extractData(html, marker) {
+  const block = html.match(new RegExp('==' + marker + '_DATA_START==([\\s\\S]*?)==' + marker + '_DATA_END=='));
+  if (!block) return null;
+  const arr = block[1].match(/=\s*(\[[\s\S]*\])\s*;/);
+  if (!arr) return null;
+  try { return new Function('return ' + arr[1])(); } catch { return null; }
+}
+async function loadOne(file, marker) {
+  try {
+    const res = await fetch(file + '?t=' + Date.now());
+    if (!res.ok) return null;
+    return extractData(await res.text(), marker);
+  } catch { return null; }
+}
+async function loadFromLive() {
+  const [e, p, c, s] = await Promise.all([
+    loadOne('events.html', 'EVENTS'),
+    loadOne('gallery.html', 'PHOTOS'),
+    loadOne('donate.html', 'CREDIT'),
+    loadOne('participate.html', 'SUPPLY')
+  ]);
+  if (Array.isArray(e)) events = e;
+  if (Array.isArray(p)) photos = p;
+  if (Array.isArray(c)) credits = c;
+  if (Array.isArray(s)) supplies = s;
+}
+async function reloadFromLive() {
+  if (!confirm('確定從線上重新載入最新資料嗎？\n（這台尚未「下載更新檔」上傳的修改會被覆蓋）')) return;
+  await loadFromLive();
+  save(); updateBadges(); renderSection();
+  toast('已從線上載入最新資料 ✓');
+}
+
+// 進入後台：每個新工作階段從線上同步一次最新資料
+async function enterAdmin() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('adminWrap').classList.add('on');
+  if (!sessionStorage.getItem('sw_synced')) {
+    await loadFromLive();
+    sessionStorage.setItem('sw_synced', '1');
+    save();
+  }
+  updateBadges();
+  renderSection();
+}
+
+/* ════════════════════════════════════
    Auth
 ════════════════════════════════════ */
 function doLogin() {
   const v = document.getElementById('pinInput').value;
   if (v === ADMIN_PASSWORD) {
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('adminWrap').classList.add('on');
-    updateBadges();
-    renderSection();
     localStorage.setItem('sw_auth', '1');
+    enterAdmin();
   } else {
     document.getElementById('loginErr').textContent = '密碼錯誤，請再試一次';
     document.getElementById('pinInput').value = '';
@@ -711,7 +774,7 @@ function renderGallery() {
     return `<tr draggable="true" style="cursor:grab"
         ondragstart="dragStart(event,${p.id})" ondragend="dragEnd(event)"
         ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropOn(event,${p.id})">
-      <td><div style="display:flex;align-items:center;gap:10px"><span title="拖曳排序" style="color:#bbb;cursor:grab;user-select:none">⠿</span>${thumb}<span>${p.title}</span></div></td>
+      <td><div style="display:flex;align-items:center;gap:10px"><span title="拖曳排序" style="color:#bbb;cursor:grab;user-select:none">⠿</span>${thumb}<span>${p.title}${p.video ? ' 🎬' : ''}${p.images && p.images.length ? ` 📷${1 + p.images.length}` : ''}</span></div></td>
       <td>${p.date}</td>
       <td><span class="badge ${CAT_C[p.category]||''}">${p.category}</span></td>
       <td style="color:#aaa;font-size:12px">${p.src}</td>
@@ -884,6 +947,8 @@ function openPhotoModal(id) {
   document.getElementById('p_cat').value   = p?.category || '活動紀錄';
   document.getElementById('p_src').value   = p?.src      || '';
   document.getElementById('p_desc').value  = p?.desc     || '';
+  document.getElementById('p_images').value = (p?.images || []).join('\n');
+  document.getElementById('p_video').value  = p?.video   || '';
   updatePreview();
   showModal('photoModal');
 }
@@ -893,6 +958,9 @@ function savePhoto() {
   const src   = document.getElementById('p_src').value.trim();
   const date  = document.getElementById('p_date').value;
   if (!title || !src || !date) { alert('請填寫標題、日期與照片檔名'); return; }
+  const images = document.getElementById('p_images').value
+    .split('\n').map(s => s.trim()).filter(Boolean);
+  const video = document.getElementById('p_video').value.trim();
   const obj = {
     id:       editId || nextId(photos),
     src,
@@ -901,6 +969,8 @@ function savePhoto() {
     category: document.getElementById('p_cat').value,
     desc:     document.getElementById('p_desc').value.trim()
   };
+  if (images.length) obj.images = images;
+  if (video) obj.video = video;
   if (editId) {
     const i = photos.findIndex(x => x.id === editId);
     photos[i] = obj;
@@ -1150,14 +1220,19 @@ function genEventsCode() {
 }
 
 function genPhotosCode() {
-  const lines = photos.map(p => `  {
+  const lines = photos.map(p => {
+    let extra = '';
+    if (p.images && p.images.length) extra += `,\n    images: ${JSON.stringify(p.images)}`;
+    if (p.video) extra += `,\n    video: ${q(p.video)}`;
+    return `  {
     id: ${p.id},
     src: ${q(p.src)},
     title: ${q(p.title)},
     date: ${q(p.date)},
     category: ${q(p.category)},
-    desc: ${q(p.desc||'')}
-  }`);
+    desc: ${q(p.desc||'')}${extra}
+  }`;
+  });
   return `/* ==PHOTOS_DATA_START== */\nconst PHOTOS = [\n${lines.join(',\n')}\n];\n/* ==PHOTOS_DATA_END== */`;
 }
 
@@ -1258,10 +1333,7 @@ document.querySelectorAll('.backdrop').forEach(bd => {
    Init
 ════════════════════════════════════ */
 if (localStorage.getItem('sw_auth') === '1') {
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('adminWrap').classList.add('on');
-  updateBadges();
-  renderSection();
+  enterAdmin();
 }
 </script>
 </body>
