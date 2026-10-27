@@ -1,0 +1,19 @@
+# 讓 Supabase 免費專案保持運作：免費專案連續 7 天沒有任何存取會被自動暫停，
+# 這裡每 3 天讀一次生活點滴資料，確保網站的線上資料庫不會睡著。
+# 用的是公開的 publishable key（網站本來就公開使用、只能讀不能寫）。
+name: Supabase keep-alive
+
+on:
+  schedule:
+    - cron: '0 3 */3 * *'   # 每 3 天一次（台灣時間上午 11 點）
+  workflow_dispatch:         # 也可以在 GitHub 的 Actions 頁手動執行
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read from Supabase
+        run: |
+          curl -sf "https://nybmhasdnnptrytvzdaz.supabase.co/rest/v1/photos?select=id&limit=1" \
+            -H "apikey: sb_publishable_NJxkvEAN-qTtoo8BUDuaCw_l9H25bWQ" > /dev/null
+          echo "Supabase is awake"

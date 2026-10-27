@@ -311,6 +311,8 @@
     desc     : 照片說明（燈箱展開後顯示）
 ════════════════════════════════════════════ -->
 <script>
+// 備援資料：生活點滴現在由線上資料庫（Supabase）提供，請用後台新增／修改。
+// 只有在線上資料庫連不上或尚未匯入時，才會顯示下面這份內建資料。
 /* ==PHOTOS_DATA_START== */
 const PHOTOS = [
   {
@@ -835,9 +837,32 @@ function photoSrc(s) {
 
 let currentCat = 'all';
 
+// 從線上資料庫（Supabase）讀取生活點滴；publishable key 只能讀，無法修改資料
+const SUPABASE_URL = 'https://nybmhasdnnptrytvzdaz.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_NJxkvEAN-qTtoo8BUDuaCw_l9H25bWQ';
+let photoList = PHOTOS;
+
+async function loadPhotos() {
+  document.getElementById('gallery-grid').innerHTML = '<p class="no-photos">照片載入中…</p>';
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/photos?select=*&order=sort_order.asc,id.asc`,
+      { headers: { apikey: SUPABASE_KEY }, signal: ctrl.signal });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const rows = await res.json();
+    if (rows.length) {
+      photoList = rows.map(r => ({ id: r.id, src: r.src, title: r.title, date: r.date, category: r.category,
+                                   desc: r.description, images: r.images, video: r.video }));
+    }
+  } catch (e) { /* 連不上就用內建資料 */ }
+  renderGallery('all');
+}
+
 function renderGallery(cat) {
   const grid = document.getElementById('gallery-grid');
-  const list = cat === 'all' ? PHOTOS : PHOTOS.filter(p => p.category === cat);
+  const list = cat === 'all' ? photoList : photoList.filter(p => p.category === cat);
   if (!list.length) {
     grid.innerHTML = '<p class="no-photos">目前尚無照片，敬請期待！</p>';
     return;
@@ -907,7 +932,7 @@ function lbGo(i) {
 }
 
 function openLightbox(id) {
-  const p = PHOTOS.find(x => x.id === id);
+  const p = photoList.find(x => x.id === id);
   if (!p) return;
   const d = new Date(p.date);
   lbMedia = buildMedia(p);
@@ -928,7 +953,7 @@ function closeLightbox() {
 }
 
 // 初始化
-renderGallery('all');
+loadPhotos();
 
 // 篩選
 document.querySelectorAll('.filter-btn').forEach(btn => {

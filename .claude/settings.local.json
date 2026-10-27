@@ -27,7 +27,12 @@
       "Bash(awk '{s+=$1;n++} END{printf \"%d 張, %.1f MB\\\\n\", n, s/1048576}')",
       "Bash(git checkout *)",
       "Bash(awk '{s+=$1;n++} END{printf \"現在: %d 張, %.1f MB（原本 21.2 MB）\\\\n\", n, s/1048576}')",
-      "Bash(awk '{printf \"  %.0f KB  %s\\\\n\",$1/1024,$2}')"
+      "Bash(awk '{printf \"  %.0f KB  %s\\\\n\",$1/1024,$2}')",
+      "Bash(curl -s -w '\\\\n[HTTP %{http_code}]\\\\n' 'https://nybmhasdnnptrytvzdaz.supabase.co/rest/v1/photos?select=id&limit=1' -H 'apikey: sb_publishable_NJxkvEAN-qTtoo8BUDuaCw_l9H25bWQ')",
+      "Bash(curl -s -w '\\\\n[HTTP %{http_code}]\\\\n' -X POST https://nybmhasdnnptrytvzdaz.supabase.co/rest/v1/photos -H 'apikey: sb_publishable_NJxkvEAN-qTtoo8BUDuaCw_l9H25bWQ' -H 'Content-Type: application/json' -H 'Prefer: return=minimal' -d '{\"title\":\"x\",\"src\":\"x\",\"date\":\"2026-01-01\"}')",
+      "Bash(curl -s -w '\\\\n[HTTP %{http_code}]\\\\n' -X POST https://nybmhasdnnptrytvzdaz.supabase.co/storage/v1/object/list/gallery -H 'apikey: sb_publishable_NJxkvEAN-qTtoo8BUDuaCw_l9H25bWQ' -H 'Content-Type: application/json' -d '{\"prefix\":\"\",\"limit\":1}')",
+      "Bash(curl -s https://nybmhasdnnptrytvzdaz.supabase.co/auth/v1/settings -H 'apikey: sb_publishable_NJxkvEAN-qTtoo8BUDuaCw_l9H25bWQ')",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}, %{size_download} bytes\\\\n\" \"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js\")"
     ]
   }
 }
