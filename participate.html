@@ -225,6 +225,7 @@
   <div class="footer-bottom"><p>© 2025 社團法人暖晴社會福利協會 ｜ All Rights Reserved</p></div>
 </footer>
 
+<script src="db.js"></script>
 <script>
 // Hamburger
 document.getElementById('hamburger').addEventListener('click', function(){
@@ -234,6 +235,7 @@ document.getElementById('hamburger').addEventListener('click', function(){
   document.body.style.overflow = m.classList.contains('open')?'hidden':'';
 });
 
+// 備援資料：物資需求現在由線上資料庫提供（請用後台修改），連不上時才顯示這份
 /* ==SUPPLY_DATA_START== */
 const SUPPLIES = [
   {
@@ -245,13 +247,19 @@ const SUPPLIES = [
 ];
 /* ==SUPPLY_DATA_END== */
 
-// 物資需求
+// 物資需求（從線上資料庫讀取，連線設定在 db.js）
+let supplyList = SUPPLIES;
+async function loadSupplies() {
+  const rows = window.fetchTable ? await fetchTable('supplies') : null;
+  if (rows) supplyList = rows.map(r => ({ id: r.id, name: r.name, status: r.status, desc: r.description }));
+  renderSupplies();
+}
 function renderSupplies() {
   const grid = document.getElementById('supply-grid');
   if (!grid) return;
-  if (!SUPPLIES.length) { grid.innerHTML = '<p class="supply-empty">目前沒有物資需求，感謝您的關心。</p>'; return; }
+  if (!supplyList.length) { grid.innerHTML = '<p class="supply-empty">目前沒有物資需求，感謝您的關心。</p>'; return; }
   const SC = { '急需':'urgent', '需要中':'need', '已募足':'done' };
-  grid.innerHTML = SUPPLIES.map(s => `<div class="supply-card">
+  grid.innerHTML = supplyList.map(s => `<div class="supply-card">
     <div class="supply-head">
       <span class="supply-name">${s.name}</span>
       <span class="supply-badge ${SC[s.status] || 'need'}">${s.status}</span>
@@ -259,7 +267,7 @@ function renderSupplies() {
     <p class="supply-desc">${s.desc || ''}</p>
   </div>`).join('');
 }
-renderSupplies();
+loadSupplies();
 </script>
 </body>
 </html>

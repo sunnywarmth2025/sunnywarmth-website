@@ -494,7 +494,9 @@ document.getElementById('hamburger').addEventListener('click', function(){
 });
 </script>
 
+<script src="db.js"></script>
 <script>
+// 備援資料：徵信現在由線上資料庫提供（請用後台修改），連不上時才顯示這份
 /* ==CREDIT_DATA_START== */
 const CREDITS = [
   {
@@ -507,12 +509,18 @@ const CREDITS = [
 ];
 /* ==CREDIT_DATA_END== */
 
-// 徵信芳名錄
+// 徵信芳名錄（從線上資料庫讀取，連線設定在 db.js）
+let creditList = CREDITS;
+async function loadCredits() {
+  const rows = window.fetchTable ? await fetchTable('credits') : null;
+  if (rows) creditList = rows.map(r => ({ id: r.id, title: r.title, date: r.date, link: r.link, content: r.content }));
+  renderCredits();
+}
 function renderCredits() {
   const grid = document.getElementById('credit-grid');
   if (!grid) return;
-  if (!CREDITS.length) { grid.innerHTML = '<p class="credit-empty">徵信資料準備中，敬請期待。</p>'; return; }
-  grid.innerHTML = CREDITS.map(c => {
+  if (!creditList.length) { grid.innerHTML = '<p class="credit-empty">徵信資料準備中，敬請期待。</p>'; return; }
+  grid.innerHTML = creditList.map(c => {
     const month = (c.title || '').split(' ')[0];
     return `<div class="credit-card" onclick="openCredit(${c.id})">
       <div class="credit-thumb">
@@ -524,7 +532,7 @@ function renderCredits() {
   }).join('');
 }
 function openCredit(id) {
-  const c = CREDITS.find(x => x.id === id);
+  const c = creditList.find(x => x.id === id);
   if (!c) return;
   if (c.link) { window.open(c.link, '_blank', 'noopener'); return; }
   document.getElementById('clb-title').textContent = c.title;
@@ -536,7 +544,7 @@ document.getElementById('creditLb').addEventListener('click', e => {
   if (e.target.id === 'creditLb') closeCredit();
 });
 
-renderCredits();
+loadCredits();
 </script>
 </body>
 </html>

@@ -147,7 +147,9 @@
     quota    : 名額（"30人" 或 "不限"）
     regLink  : 報名連結（"" 則顯示「來信報名」）
 ════════════════════════════════════════════ -->
+<script src="db.js"></script>
 <script>
+// 備援資料：活動現在由線上資料庫提供（請用後台修改），連不上時才顯示這份
 /* ==EVENTS_DATA_START== */
 const EVENTS = [
 
@@ -172,7 +174,7 @@ function parseDate(str) {
 
 function renderEvents(filter) {
   const grid = document.getElementById('events-grid');
-  let list = [...EVENTS].sort((a,b) => {
+  let list = [...eventList].sort((a,b) => {
     const ea = a.status==='ended'?1:0, eb = b.status==='ended'?1:0;
     if(ea!==eb) return ea-eb;
     return new Date(a.date)-new Date(b.date);
@@ -213,7 +215,7 @@ function renderEvents(filter) {
 }
 
 function openModal(id) {
-  const ev = EVENTS.find(e=>e.id===id);
+  const ev = eventList.find(e=>e.id===id);
   if(!ev) return;
   const {y,m,d} = parseDate(ev.date);
   document.getElementById('modal-title').textContent = ev.title;
@@ -241,8 +243,19 @@ function closeModal() {
   document.body.style.overflow = '';
 }
 
-// 初始化
-renderEvents('all');
+// 初始化：從線上資料庫讀取活動（連線設定在 db.js），連不上時用上面的內建資料
+let eventList = EVENTS;
+async function loadEvents() {
+  const rows = window.fetchTable ? await fetchTable('events') : null;
+  if (rows) eventList = rows.map(r => ({ id: r.id, title: r.title, type: r.event_type, date: r.date, time: r.event_time,
+    location: r.location, status: r.status, desc: r.description, detail: r.detail, contact: r.contact,
+    fee: r.fee, quota: r.quota, regLink: r.reg_link }));
+  renderEvents('all');
+  // 從首頁等外部連結帶 ?id=N 進來時，自動打開該活動詳情
+  const id = parseInt(new URLSearchParams(location.search).get('id'), 10);
+  if (id && eventList.some(e => e.id === id)) openModal(id);
+}
+loadEvents();
 
 // 篩選
 document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -266,12 +279,6 @@ document.getElementById('hamburger').addEventListener('click', function(){
   m.classList.toggle('open');
   document.body.style.overflow = m.classList.contains('open')?'hidden':'';
 });
-
-// 從首頁等外部連結帶 ?id=N 進來時，自動打開該活動詳情
-(function(){
-  const id = parseInt(new URLSearchParams(location.search).get('id'), 10);
-  if (id && EVENTS.some(e => e.id === id)) openModal(id);
-})();
 </script>
 </body>
 </html>

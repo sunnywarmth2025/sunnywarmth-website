@@ -26,6 +26,10 @@
     .login-err{color:#e74c3c;font-size:13px;margin-top:10px;min-height:18px}
     .login-hint{font-size:11px;color:#ccc;margin-top:20px}
     .login-box input.li{letter-spacing:normal;font-size:15px;text-align:left}
+    .login-google{background:#fff;color:#333;border:2px solid #e0e0e0;display:flex;align-items:center;justify-content:center;gap:10px}
+    .login-google:hover{background:#f7f7f7}
+    .login-alt{margin-top:18px;font-size:12px;color:#999}
+    .login-alt summary{cursor:pointer;margin-bottom:12px}
 
     /* ── Layout ── */
     #adminWrap{display:none;flex-direction:column;min-height:100vh}
@@ -201,13 +205,20 @@
     <div class="login-icon">☀️</div>
     <div class="login-title">暖晴後台管理</div>
     <div class="login-sub">社團法人暖晴社會福利協會</div>
-    <input type="email" id="loginEmail" class="li" placeholder="管理員 Email" autocomplete="username"
-      onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()" />
-    <input type="password" id="loginPass" class="li" placeholder="密碼" autocomplete="current-password"
-      onkeydown="if(event.key==='Enter')doLogin()" />
-    <button class="login-btn" onclick="doLogin()">登入</button>
+    <button class="login-btn login-google" onclick="loginWithGoogle()">
+      <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
+      使用 Google 帳號登入
+    </button>
     <div class="login-err" id="loginErr"></div>
-    <div class="login-hint">使用 Supabase 管理員帳號登入</div>
+    <details class="login-alt">
+      <summary>改用 Email 密碼登入</summary>
+      <input type="email" id="loginEmail" class="li" placeholder="Email" autocomplete="username"
+        onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()" />
+      <input type="password" id="loginPass" class="li" placeholder="密碼" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')doLogin()" />
+      <button class="login-btn" onclick="doLogin()">登入</button>
+    </details>
+    <div class="login-hint">只有「管理人員名單」內的帳號能進入後台</div>
   </div>
 </div>
 
@@ -223,7 +234,10 @@
         <div class="hdr-sub">社團法人暖晴社會福利協會</div>
       </div>
     </div>
-    <button class="btn-logout" onclick="doLogout()">登出</button>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span class="hdr-sub" id="hdrUser"></span>
+      <button class="btn-logout" onclick="doLogout()">登出</button>
+    </div>
   </header>
 
   <div class="adm-body">
@@ -252,6 +266,13 @@
         <span class="sb-badge" id="badge-supply">0</span>
       </div>
       <hr class="sb-divider" />
+      <div class="sb-label">系統</div>
+      <div class="sb-item" id="nav-staff" onclick="showSection('staff')">
+        <span class="sb-icon">👥</span>
+        <span>管理人員</span>
+        <span class="sb-badge" id="badge-staff">0</span>
+      </div>
+      <hr class="sb-divider" />
       <div class="sb-label">快速連結</div>
       <div class="sb-item" onclick="window.open('events.html','_blank')">
         <span class="sb-icon">🔗</span><span>活動頁面</span>
@@ -269,19 +290,13 @@
         <span class="sb-icon">🌐</span><span>前台首頁</span>
       </div>
       <hr class="sb-divider" />
-      <div class="sb-label">資料來源：線上</div>
-      <div class="sb-item" onclick="reloadFromLive()">
-        <span class="sb-icon">🔄</span><span>從線上重新載入</span>
+      <div class="sb-label">資料</div>
+      <div class="sb-item" onclick="reloadAll()">
+        <span class="sb-icon">🔄</span><span>重新整理資料</span>
       </div>
-      <hr class="sb-divider" />
-      <div class="sb-label">資料備份</div>
       <div class="sb-item" onclick="exportBackup()">
-        <span class="sb-icon">💾</span><span>匯出備份 JSON</span>
+        <span class="sb-icon">💾</span><span>下載備份 JSON</span>
       </div>
-      <div class="sb-item" onclick="document.getElementById('importFile').click()">
-        <span class="sb-icon">📂</span><span>匯入備份 JSON</span>
-      </div>
-      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importBackup(this)" />
     </aside>
 
     <!-- Main area -->
@@ -369,7 +384,7 @@
     </div>
     <div class="m-footer">
       <button class="btn btn-ghost" onclick="closeModal('eventModal')">取消</button>
-      <button class="btn btn-primary" onclick="saveEvent()">💾 儲存</button>
+      <button class="btn btn-primary" id="eventSaveBtn" onclick="saveEvent()">💾 儲存</button>
     </div>
   </div>
 </div>
@@ -474,7 +489,7 @@
     </div>
     <div class="m-footer">
       <button class="btn btn-ghost" onclick="closeModal('creditModal')">取消</button>
-      <button class="btn btn-primary" onclick="saveCredit()">💾 儲存</button>
+      <button class="btn btn-primary" id="creditSaveBtn" onclick="saveCredit()">💾 儲存</button>
     </div>
   </div>
 </div>
@@ -506,46 +521,7 @@
     </div>
     <div class="m-footer">
       <button class="btn btn-ghost" onclick="closeModal('supplyModal')">取消</button>
-      <button class="btn btn-primary" onclick="saveSupply()">💾 儲存</button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════ DOWNLOAD MODAL ═══════════════ -->
-<div class="backdrop" id="dlModal">
-  <div class="modal modal-lg">
-    <div class="m-hdr">
-      <div class="m-title" id="dlTitle">下載更新後的檔案</div>
-      <button class="m-close" onclick="closeModal('dlModal')">✕</button>
-    </div>
-    <div class="m-body">
-      <div class="notice" id="dlNotice"></div>
-      <div class="steps">
-        <div class="step">
-          <div class="step-num">1</div>
-          <div>點擊「<strong>下載檔案</strong>」，儲存到電腦（若出現「無法下載」請改用下方複製程式碼方式）</div>
-        </div>
-        <div class="step">
-          <div class="step-num">2</div>
-          <div>前往 <strong>GitHub</strong>，找到對應的檔案，點選「上傳」取代原本的版本</div>
-        </div>
-        <div class="step">
-          <div class="step-num">3</div>
-          <div>等待約 1–2 分鐘，網站即會自動更新</div>
-        </div>
-      </div>
-      <div id="dlFallback" style="display:none">
-        <div style="font-size:13px;color:#666;margin-bottom:8px">
-          ⚠️ 無法自動下載時，請複製以下程式碼，貼到 HTML 檔案中替換對應位置：
-        </div>
-        <div class="code-box" id="dlCode"></div>
-        <button class="btn btn-ghost btn-sm" onclick="copyCode()">📋 複製程式碼</button>
-        <span id="copyOk" style="font-size:12px;color:#27ae60;margin-left:8px;display:none">✓ 已複製</span>
-      </div>
-    </div>
-    <div class="m-footer">
-      <button class="btn btn-ghost" onclick="closeModal('dlModal')">關閉</button>
-      <button class="btn btn-green" id="dlBtn" onclick="doDownload()">📥 下載檔案</button>
+      <button class="btn btn-primary" id="supplySaveBtn" onclick="saveSupply()">💾 儲存</button>
     </div>
   </div>
 </div>
@@ -554,104 +530,122 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="db.js"></script>
 <script>
 /* ════════════════════════════════════
-   設定區：線上資料庫（Supabase）
-   publishable key 本來就設計成公開使用，
-   只能做資料庫權限規則允許的事（訪客唯讀）。
+   線上資料庫（Supabase）：存檔即上線
+   連線設定在 db.js（全站共用）
 ════════════════════════════════════ */
-const SUPABASE_URL = 'https://nybmhasdnnptrytvzdaz.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_NJxkvEAN-qTtoo8BUDuaCw_l9H25bWQ';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* ════════════════════════════════════
-   初始資料（與網站同步）
-════════════════════════════════════ */
-const INIT_EVENTS = [
-  {
-    id:1, title:"庇護工場體驗志工招募", type:"志工招募",
-    date:"2025-07-15", time:"08:30–11:30",
-    location:"南投縣草屯鎮（集合點報名後通知）", status:"open",
-    desc:"招募愛心志工，陪伴身障學員進行職能技藝訓練與商品製作，一起把溫暖傳出去。",
-    detail:"協助身障學員進行商品製作、包裝與外展擺攤等工作訓練，過程中給予陪伴與鼓勵。完成後提供志工時數證明，歡迎個人或團體報名。",
-    contact:"來信：sunnywarmth2025@gmail.com", fee:"免費", quota:"15 人",
-    regLink:"mailto:sunnywarmth2025@gmail.com?subject=志工報名-庇護工場體驗"
+/* 各區塊與資料表的對應
+   from / to：資料庫欄位 ↔ 後台使用的欄位
+   newOnTop：新增的項目排在最上面
+   source：一次性匯入時，從哪個網頁的哪個資料區塊讀舊資料 */
+const TABLES = {
+  events: {
+    table: 'events', name: '活動', newOnTop: false, source: ['events.html', 'EVENTS'],
+    from: r => ({ id: r.id, title: r.title, type: r.event_type, date: r.date, time: r.event_time, location: r.location,
+                  status: r.status, desc: r.description, detail: r.detail, contact: r.contact, fee: r.fee,
+                  quota: r.quota, regLink: r.reg_link, sort_order: r.sort_order }),
+    to: e => ({ title: e.title, event_type: e.type || '', date: e.date, event_time: e.time || '', location: e.location || '',
+                status: e.status || 'open', description: e.desc || '', detail: e.detail || '', contact: e.contact || '',
+                fee: e.fee || '免費', quota: e.quota || '不限', reg_link: e.regLink || '' })
   },
-  {
-    id:2, title:"親子手作藝術工作坊", type:"藝術療癒",
-    date:"2025-07-27", time:"14:00–16:30",
-    location:"草屯服務據點 多功能教室", status:"open",
-    desc:"以植物染技法製作獨一無二的布袋，讓親子在創作中建立連結、享受療癒時光。",
-    detail:"適合 6 歲以上兒童與家長共同參與，材料費全免。每組限一位成人搭配一位兒童，由專業藝術療育師帶領。",
-    contact:"來信：sunnywarmth2025@gmail.com", fee:"免費", quota:"12 組",
-    regLink:"mailto:sunnywarmth2025@gmail.com?subject=報名-親子手作工作坊"
+  photos: {
+    table: 'photos', name: '生活點滴', newOnTop: true, source: ['gallery.html', 'PHOTOS'],
+    from: r => ({ id: r.id, src: r.src, title: r.title, date: r.date, category: r.category, desc: r.description,
+                  images: r.images || [], video: r.video || '', sort_order: r.sort_order }),
+    to: p => ({ title: p.title, src: p.src, images: p.images || [], video: p.video || '', date: p.date,
+                category: p.category, description: p.desc || '' })
   },
-  {
-    id:3, title:"心理健康講座：與焦慮和平共處", type:"講座",
-    date:"2025-08-09", time:"19:00–21:00",
-    location:"線上（Zoom，報名後提供連結）", status:"soon",
-    desc:"邀請臨床心理師分享辨識焦慮訊號的方法，並學習有效的自我調節技巧。",
-    detail:"演講結束後開放 20 分鐘 Q&A。報名後將以 Email 發送 Zoom 連結，敬請留意信箱。",
-    contact:"來信：sunnywarmth2025@gmail.com", fee:"免費", quota:"不限",
-    regLink:"mailto:sunnywarmth2025@gmail.com?subject=報名-心理健康講座"
+  credits: {
+    table: 'credits', name: '徵信', newOnTop: true, source: ['donate.html', 'CREDIT'],
+    from: r => ({ id: r.id, title: r.title, date: r.date, link: r.link, content: r.content, sort_order: r.sort_order }),
+    to: c => ({ title: c.title, date: c.date, link: c.link || '', content: c.content || '' })
   },
-  {
-    id:4, title:"社區烘焙義賣——共融甜點節", type:"義賣活動",
-    date:"2025-06-22", time:"10:00–16:00",
-    location:"草屯鎮中正路廣場", status:"ended",
-    desc:"由服務對象與志工共同烘焙，現場義賣，所得全額用於服務推廣。",
-    detail:"活動已圓滿落幕！感謝所有參與的夥伴，本次義賣所得善款將全額用於身障就業培訓與職能訓練服務。敬請期待下一次活動！",
-    contact:"感謝您的支持！", fee:"—", quota:"—", regLink:""
+  supplies: {
+    table: 'supplies', name: '物資', newOnTop: false, source: ['participate.html', 'SUPPLY'],
+    from: r => ({ id: r.id, name: r.name, status: r.status, desc: r.description, sort_order: r.sort_order }),
+    to: s => ({ name: s.name, status: s.status || '需要中', description: s.desc || '' })
   }
-];
-
-const INIT_PHOTOS = [
-  {
-    id:1, src:"team-photo.png", title:"暖晴大家庭合影",
-    date:"2025-06-01", category:"日常生活",
-    desc:"協會全體夥伴合影，每一張笑臉背後都是滿滿的熱情與付出。"
-  }
-];
-
-const INIT_CREDITS = [
-  {
-    id:1, title:"2025年5月 捐款芳名單", date:"2025-05-31", link:"",
-    content:"感謝每一位善心捐款人的支持！\n（此為範例，請至後台編輯或新增實際名單）"
-  }
-];
-
-const INIT_SUPPLIES = [
-  {
-    id:1, name:"白米", status:"需要中",
-    desc:"用於身障學員職能培訓與工作坊實作，數量不限。"
-  }
-];
+};
 
 /* ════════════════════════════════════
    State
 ════════════════════════════════════ */
-let events  = JSON.parse(localStorage.getItem('sw_events'))  || JSON.parse(JSON.stringify(INIT_EVENTS));
-let photos  = JSON.parse(localStorage.getItem('sw_photos'))  || JSON.parse(JSON.stringify(INIT_PHOTOS));
-let credits  = JSON.parse(localStorage.getItem('sw_credits'))  || JSON.parse(JSON.stringify(INIT_CREDITS));
-let supplies = JSON.parse(localStorage.getItem('sw_supplies')) || JSON.parse(JSON.stringify(INIT_SUPPLIES));
+const data = { events: [], photos: [], credits: [], supplies: [] };
+let staff   = [];        // 管理人員名單
 let section = 'events';
 let editId  = null;
-let dlType  = 'events';
-let dlHtml  = '';
-
-function save() {
-  localStorage.setItem('sw_events', JSON.stringify(events));
-  localStorage.setItem('sw_photos', JSON.stringify(photos));
-  localStorage.setItem('sw_credits', JSON.stringify(credits));
-  localStorage.setItem('sw_supplies', JSON.stringify(supplies));
-  updateBadges();
-}
+let entered = false;
+let myEmail = '';
 
 /* ════════════════════════════════════
-   從線上載入資料（不綁單一電腦）
-   開啟後台時自動抓已發佈網頁的最新資料，
-   任何電腦打開都看得到最新內容。
+   資料存取
 ════════════════════════════════════ */
+async function loadTable(key) {
+  const t = TABLES[key];
+  const { data: rows, error } = await sb.from(t.table).select('*')
+    .order('sort_order', { ascending: true }).order('id', { ascending: true });
+  if (error) { toast(`讀取${t.name}失敗：${error.message}`); return; }
+  data[key] = rows.map(t.from);
+}
+async function loadStaff() {
+  const { data: rows, error } = await sb.from('admin_users').select('*').order('created_at', { ascending: true });
+  staff = error ? [] : rows;
+}
+async function loadAll() {
+  await Promise.all([...Object.keys(TABLES).map(loadTable), loadStaff()]);
+}
+async function reloadAll() {
+  await loadAll();
+  updateBadges(); renderSection();
+  toast('已重新整理 ✓');
+}
+
+// 新增（id 為 null）或修改一筆；成功回傳 true
+async function saveItem(key, id, item) {
+  const t = TABLES[key];
+  let error;
+  if (id) {
+    ({ error } = await sb.from(t.table).update(t.to(item)).eq('id', id));
+  } else {
+    const orders = data[key].map(x => x.sort_order ?? 0);
+    const order = !orders.length ? 0 : t.newOnTop ? Math.min(...orders) - 1 : Math.max(...orders) + 1;
+    ({ error } = await sb.from(t.table).insert({ ...t.to(item), sort_order: order }));
+  }
+  if (error) { alert('儲存失敗：' + error.message); return false; }
+  await loadTable(key);
+  updateBadges();
+  return true;
+}
+async function deleteItem(key, id) {
+  const { error } = await sb.from(TABLES[key].table).delete().eq('id', id);
+  if (error) { alert('刪除失敗：' + error.message); return false; }
+  data[key] = data[key].filter(x => x.id !== id);
+  updateBadges();
+  return true;
+}
+// 依目前清單順序寫回資料庫（拖曳、上下移、依日期排序後呼叫）
+async function persistOrder(key) {
+  const t = TABLES[key];
+  data[key].forEach((x, i) => { x.sort_order = i; });
+  renderSection();
+  const { error } = await sb.from(t.table).upsert(data[key].map((x, i) => ({ id: x.id, ...t.to(x), sort_order: i })));
+  if (error) { alert('排序儲存失敗：' + error.message); await loadTable(key); renderSection(); }
+}
+// 儲存按鈕執行期間顯示「儲存中…」並避免重複點擊
+async function withSaving(btnId, fn) {
+  const btn = document.getElementById(btnId);
+  btn.disabled = true; btn.textContent = '儲存中…';
+  try { return await fn(); } finally { btn.disabled = false; btn.textContent = '💾 儲存'; }
+}
+function sortByDateDesc(list) {
+  list.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+}
+
+/* 一次性匯入：把網頁內建的舊資料搬進資料庫（資料表是空的才會出現按鈕） */
 function extractData(html, marker) {
   const block = html.match(new RegExp('==' + marker + '_DATA_START==([\\s\\S]*?)==' + marker + '_DATA_END=='));
   if (!block) return null;
@@ -659,87 +653,34 @@ function extractData(html, marker) {
   if (!arr) return null;
   try { return new Function('return ' + arr[1])(); } catch { return null; }
 }
-async function loadOne(file, marker) {
+async function importToDb(key) {
+  const t = TABLES[key];
+  if (data[key].length) { alert('線上已有資料，不需要匯入。'); return; }
+  let old = null;
   try {
-    const res = await fetch(file + '?t=' + Date.now());
-    if (!res.ok) return null;
-    return extractData(await res.text(), marker);
-  } catch { return null; }
-}
-// 活動、徵信、物資仍從已發佈網頁讀取；生活點滴改由線上資料庫提供（見下方）
-async function loadFromLive() {
-  const [e, c, s] = await Promise.all([
-    loadOne('events.html', 'EVENTS'),
-    loadOne('donate.html', 'CREDIT'),
-    loadOne('participate.html', 'SUPPLY')
-  ]);
-  if (Array.isArray(e)) events = e;
-  if (Array.isArray(c)) credits = c;
-  if (Array.isArray(s)) supplies = s;
-}
-async function reloadFromLive() {
-  if (!confirm('確定從線上重新載入最新資料嗎？\n（這台尚未「下載更新檔」上傳的修改會被覆蓋）')) return;
-  await loadFromLive();
-  await loadPhotosFromDb();
-  save(); updateBadges(); renderSection();
-  toast('已從線上載入最新資料 ✓');
+    const res = await fetch(t.source[0] + '?t=' + Date.now());
+    if (res.ok) old = extractData(await res.text(), t.source[1]);
+  } catch (e) { /* 下面統一提示 */ }
+  if (!Array.isArray(old) || !old.length) { alert(`「${t.name}」沒有可以匯入的舊資料，直接按「新增」開始即可。`); return; }
+  if (!confirm(`要把現有的 ${old.length} 筆${t.name}匯入線上資料庫嗎？（只需要做一次）`)) return;
+  const { error } = await sb.from(t.table).insert(old.map((x, i) => ({ ...t.to(x), sort_order: i })));
+  if (error) { alert('匯入失敗：' + error.message); return; }
+  await loadTable(key); updateBadges(); renderSection();
+  toast(`已匯入 ${data[key].length} 筆${t.name}，網站已同步 ✓`);
 }
 
 /* ════════════════════════════════════
-   生活點滴：Supabase 線上資料庫
-   存檔＝網站立即更新，不需下載更新檔、不需上傳 GitHub
+   登入：Google（主要）或 Email 密碼
+   能不能進後台，看的是「管理人員名單」（資料庫的 is_admin）
 ════════════════════════════════════ */
-function rowToPhoto(r) {
-  return { id: r.id, src: r.src, title: r.title, date: r.date, category: r.category,
-           desc: r.description || '', images: r.images || [], video: r.video || '', sort_order: r.sort_order };
+async function loginWithGoogle() {
+  document.getElementById('loginErr').textContent = '前往 Google 登入…';
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: location.origin + location.pathname }
+  });
+  if (error) document.getElementById('loginErr').textContent = 'Google 登入無法啟動：' + error.message;
 }
-function photoToRow(p, order) {
-  return { title: p.title, src: p.src, images: p.images || [], video: p.video || '', date: p.date,
-           category: p.category, description: p.desc || '', sort_order: order };
-}
-async function loadPhotosFromDb() {
-  const { data, error } = await sb.from('photos').select('*')
-    .order('sort_order', { ascending: true }).order('id', { ascending: true });
-  if (error) { toast('讀取線上照片失敗：' + error.message); return false; }
-  photos = data.map(rowToPhoto);
-  return true;
-}
-// 依目前清單順序寫回資料庫（拖曳、上下移、依日期排序後呼叫）
-async function persistPhotoOrder() {
-  photos.forEach((p, i) => { p.sort_order = i; });
-  renderGallery();
-  const { error } = await sb.from('photos').upsert(photos.map((p, i) => ({ id: p.id, ...photoToRow(p, i) })));
-  if (error) { alert('排序儲存失敗：' + error.message); await loadPhotosFromDb(); renderGallery(); return; }
-  save();
-}
-// 登入後確認這個帳號真的有寫入權限（對應 Supabase SQL 裡 is_admin() 的 email）
-async function checkAdminRights() {
-  const { data, error } = await sb.rpc('is_admin');
-  if (error || data !== true) {
-    const { data: s } = await sb.auth.getSession();
-    alert('⚠️ 這個帳號目前「沒有」修改生活點滴的權限。\n\n請到 Supabase → SQL Editor，確認 is_admin() 裡填的 email 是：\n' +
-          (s.session?.user?.email || '（目前登入的 email）'));
-  }
-}
-
-// 進入後台：其他區塊每個工作階段同步一次；生活點滴每次都以資料庫為準
-async function enterAdmin() {
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('adminWrap').classList.add('on');
-  if (!sessionStorage.getItem('sw_synced')) {
-    await loadFromLive();
-    sessionStorage.setItem('sw_synced', '1');
-  }
-  await loadPhotosFromDb();
-  save();
-  updateBadges();
-  renderSection();
-  checkAdminRights();
-}
-
-/* ════════════════════════════════════
-   Auth（Supabase 帳號登入）
-════════════════════════════════════ */
 async function doLogin() {
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPass').value;
@@ -748,15 +689,39 @@ async function doLogin() {
   err.textContent = '登入中…';
   const { error } = await sb.auth.signInWithPassword({ email, password });
   document.getElementById('loginPass').value = '';
-  if (error) { err.textContent = '登入失敗：Email 或密碼錯誤'; return; }
-  err.textContent = '';
-  enterAdmin();
+  if (error) err.textContent = '登入失敗：Email 或密碼錯誤';
+  // 成功時由 onAuthStateChange 接手進入後台
 }
 async function doLogout() {
+  entered = false;
   await sb.auth.signOut();
-  sessionStorage.removeItem('sw_synced');
+  showLogin('');
+}
+function showLogin(msg) {
   document.getElementById('adminWrap').classList.remove('on');
   document.getElementById('loginScreen').style.display = '';
+  document.getElementById('loginErr').textContent = msg || '';
+}
+async function enterAdmin(session) {
+  if (entered) return;
+  entered = true;
+  myEmail = (session?.user?.email || '').toLowerCase();
+  const { data: ok, error } = await sb.rpc('is_admin');
+  if (error || ok !== true) {
+    entered = false;
+    await sb.auth.signOut();
+    showLogin(error ? '無法確認權限：' + error.message
+                    : `${myEmail} 不在管理人員名單內，請現任管理員到「管理人員」把你加進來。`);
+    return;
+  }
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('adminWrap').classList.add('on');
+  document.getElementById('loginErr').textContent = '';
+  document.getElementById('hdrUser').textContent = myEmail;
+  document.getElementById('mainArea').innerHTML = '<div class="empty"><div class="empty-icon">⏳</div>資料載入中…</div>';
+  await loadAll();
+  updateBadges();
+  renderSection();
 }
 
 /* ════════════════════════════════════
@@ -769,26 +734,37 @@ function showSection(s) {
   renderSection();
 }
 function updateBadges() {
-  document.getElementById('badge-events').textContent = events.length;
-  document.getElementById('badge-gallery').textContent = photos.length;
-  document.getElementById('badge-credit').textContent = credits.length;
-  document.getElementById('badge-supply').textContent = supplies.length;
+  document.getElementById('badge-events').textContent  = data.events.length;
+  document.getElementById('badge-gallery').textContent = data.photos.length;
+  document.getElementById('badge-credit').textContent  = data.credits.length;
+  document.getElementById('badge-supply').textContent  = data.supplies.length;
+  document.getElementById('badge-staff').textContent   = staff.length;
 }
 
 /* ════════════════════════════════════
    Render
 ════════════════════════════════════ */
 function renderSection() {
-  if (section === 'events') renderEvents();
-  else if (section === 'gallery') renderGallery();
-  else if (section === 'credit') renderCredit();
-  else if (section === 'supply') renderSupply();
+  ({ events: renderEvents, gallery: renderGallery, credit: renderCredit,
+     supply: renderSupply, staff: renderStaff })[section]();
+}
+// 每一區共用的標題列：即時上線標示＋（資料表是空的時）匯入按鈕
+function pageHeader(title, key, buttons) {
+  const importBtn = data[key].length ? '' :
+    `<button class="btn btn-green" onclick="importToDb('${key}')">⬆ 匯入現有資料</button>`;
+  return `
+    <div class="pg-hdr">
+      <div class="pg-title">${title}
+        <span style="font-size:12px;font-weight:600;color:#1a8f4c;background:#e8f6ee;border-radius:10px;padding:3px 10px;margin-left:8px">🟢 即時上線：存檔後網站立即更新</span>
+      </div>
+      <div class="pg-actions">${importBtn}${buttons}</div>
+    </div>`;
 }
 
 function renderEvents() {
   const STATUS = { open:'報名中', soon:'即將開始', full:'額滿', ended:'已結束' };
   const SC = { open:'b-open', soon:'b-soon', full:'b-full', ended:'b-ended' };
-  let rows = events.length ? events.map(e => `
+  const rows = data.events.length ? data.events.map(e => `
     <tr>
       <td><strong>${e.title}</strong><br><span style="color:#aaa;font-size:11px">${e.type||''}</span></td>
       <td>${e.date}</td>
@@ -802,14 +778,8 @@ function renderEvents() {
     </tr>`).join('') :
     `<tr><td colspan="6"><div class="empty"><div class="empty-icon">📭</div>尚無活動資料，點右上角「新增」開始</div></td></tr>`;
 
-  document.getElementById('mainArea').innerHTML = `
-    <div class="pg-hdr">
-      <div class="pg-title">📅 活動公告管理</div>
-      <div class="pg-actions">
-        <button class="btn btn-green" onclick="openDownload('events')">📥 下載更新檔</button>
-        <button class="btn btn-primary" onclick="openEventModal(null)">＋ 新增活動</button>
-      </div>
-    </div>
+  document.getElementById('mainArea').innerHTML = pageHeader('📅 活動公告管理', 'events',
+      `<button class="btn btn-primary" onclick="openEventModal(null)">＋ 新增活動</button>`) + `
     <div class="card">
       <table>
         <thead><tr>
@@ -823,7 +793,8 @@ function renderEvents() {
 
 function renderGallery() {
   const CAT_C = { '活動紀錄':'b-活動紀錄','日常生活':'b-日常生活','志工服務':'b-志工服務','培訓課程':'b-培訓課程' };
-  let rows = photos.length ? photos.map((p, idx) => {
+  const photos = data.photos;
+  const rows = photos.length ? photos.map((p, idx) => {
     const thumb = p.src
       ? `<img class="thumb" src="${adminImg(p.src)}" alt="${p.title}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><div class="thumb-ph" style="display:none">🖼️</div>`
       : `<div class="thumb-ph">🖼️</div>`;
@@ -846,17 +817,9 @@ function renderGallery() {
   }).join('') :
     `<tr><td colspan="5"><div class="empty"><div class="empty-icon">📷</div>尚無照片，點右上角「新增」開始</div></td></tr>`;
 
-  document.getElementById('mainArea').innerHTML = `
-    <div class="pg-hdr">
-      <div class="pg-title">🖼️ 生活點滴管理
-        <span style="font-size:12px;font-weight:600;color:#1a8f4c;background:#e8f6ee;border-radius:10px;padding:3px 10px;margin-left:8px">🟢 即時上線：存檔後網站立即更新</span>
-      </div>
-      <div class="pg-actions">
-        ${photos.length ? '' : '<button class="btn btn-green" onclick="importPhotosToDb()">⬆ 匯入現有資料</button>'}
+  document.getElementById('mainArea').innerHTML = pageHeader('🖼️ 生活點滴管理', 'photos', `
         <button class="btn btn-ghost" onclick="sortPhotosByDate()" title="把所有照片依日期由新到舊重新排列">🗓 依日期排序</button>
-        <button class="btn btn-primary" onclick="openPhotoModal(null)">＋ 新增照片</button>
-      </div>
-    </div>
+        <button class="btn btn-primary" onclick="openPhotoModal(null)">＋ 新增照片</button>`) + `
     <div class="card">
       <table>
         <thead><tr>
@@ -868,7 +831,7 @@ function renderGallery() {
 }
 
 function renderCredit() {
-  let rows = credits.length ? credits.map(c => `
+  const rows = data.credits.length ? data.credits.map(c => `
     <tr>
       <td><strong>${c.title}</strong></td>
       <td>${c.date}</td>
@@ -880,15 +843,9 @@ function renderCredit() {
     </tr>`).join('') :
     `<tr><td colspan="4"><div class="empty"><div class="empty-icon">📋</div>尚無徵信資料，點右上角「新增」開始</div></td></tr>`;
 
-  document.getElementById('mainArea').innerHTML = `
-    <div class="pg-hdr">
-      <div class="pg-title">📋 捐款徵信管理</div>
-      <div class="pg-actions">
+  document.getElementById('mainArea').innerHTML = pageHeader('📋 捐款徵信管理', 'credits', `
         <button class="btn btn-ghost" onclick="sortCreditsByDate()" title="依日期由新到舊重新排列">🗓 依日期排序</button>
-        <button class="btn btn-green" onclick="openDownload('credit')">📥 下載更新檔</button>
-        <button class="btn btn-primary" onclick="openCreditModal(null)">＋ 新增徵信</button>
-      </div>
-    </div>
+        <button class="btn btn-primary" onclick="openCreditModal(null)">＋ 新增徵信</button>`) + `
     <div class="card">
       <table>
         <thead><tr>
@@ -905,7 +862,7 @@ function renderSupply() {
     '需要中': 'color:#b8860b;background:#fff4e0',
     '已募足': 'color:#1a8f4c;background:#e8f6ee'
   };
-  let rows = supplies.length ? supplies.map(s => `
+  const rows = data.supplies.length ? data.supplies.map(s => `
     <tr>
       <td><strong>${s.name}</strong></td>
       <td><span class="badge" style="${SC[s.status] || SC['需要中']}">${s.status}</span></td>
@@ -917,14 +874,8 @@ function renderSupply() {
     </tr>`).join('') :
     `<tr><td colspan="4"><div class="empty"><div class="empty-icon">🎁</div>尚無物資需求，點右上角「新增」開始</div></td></tr>`;
 
-  document.getElementById('mainArea').innerHTML = `
-    <div class="pg-hdr">
-      <div class="pg-title">🎁 物資需求管理</div>
-      <div class="pg-actions">
-        <button class="btn btn-green" onclick="openDownload('supply')">📥 下載更新檔</button>
-        <button class="btn btn-primary" onclick="openSupplyModal(null)">＋ 新增物資</button>
-      </div>
-    </div>
+  document.getElementById('mainArea').innerHTML = pageHeader('🎁 物資需求管理', 'supplies',
+      `<button class="btn btn-primary" onclick="openSupplyModal(null)">＋ 新增物資</button>`) + `
     <div class="card">
       <table>
         <thead><tr>
@@ -935,12 +886,70 @@ function renderSupply() {
     </div>`;
 }
 
+function renderStaff() {
+  const rows = staff.map(s => `
+    <tr>
+      <td><strong>${esc(s.email)}</strong>${s.email === myEmail ? ' <span style="color:#1a8f4c;font-size:11px">（你）</span>' : ''}</td>
+      <td>${esc(s.name) || '—'}</td>
+      <td>${(s.created_at || '').slice(0, 10)}</td>
+      <td class="col-actions">${s.email === myEmail ? '' :
+        `<button class="btn btn-danger btn-sm" data-email="${esc(s.email)}" onclick="removeStaff(this.dataset.email)">移除</button>`}</td>
+    </tr>`).join('');
+
+  document.getElementById('mainArea').innerHTML = `
+    <div class="pg-hdr"><div class="pg-title">👥 管理人員</div></div>
+    <div class="card" style="padding:18px 20px;margin-bottom:16px">
+      <div style="font-size:13px;color:#666;line-height:1.8;margin-bottom:12px">
+        名單內的人可以用自己的 <strong>Google 帳號</strong>登入後台、修改網站內容。<br>
+        新增後，請同仁打開後台按「使用 Google 帳號登入」即可；不在名單內的帳號會被自動擋下。
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input id="staffEmail" class="fc" style="flex:2;min-width:220px" placeholder="同仁的 Google 帳號，例：name@gmail.com"
+          onkeydown="if(event.key==='Enter')addStaff()" />
+        <input id="staffName" class="fc" style="flex:1;min-width:120px" placeholder="稱呼（選填）"
+          onkeydown="if(event.key==='Enter')addStaff()" />
+        <button class="btn btn-primary" onclick="addStaff()">＋ 新增</button>
+      </div>
+    </div>
+    <div class="card">
+      <table>
+        <thead><tr><th>Google 帳號</th><th>稱呼</th><th>加入日期</th><th style="text-align:right">操作</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
+
+/* ════════════════════════════════════
+   管理人員
+════════════════════════════════════ */
+async function addStaff() {
+  const email = document.getElementById('staffEmail').value.trim().toLowerCase();
+  const name  = document.getElementById('staffName').value.trim();
+  if (!/^[^@\s'"<>]+@[^@\s'"<>]+\.[^@\s'"<>]+$/.test(email)) { alert('請輸入正確的 Email'); return; }
+  if (staff.some(s => s.email === email)) { alert('這個帳號已經在名單裡了'); return; }
+  const { error } = await sb.from('admin_users').insert({ email, name });
+  if (error) { alert('新增失敗：' + error.message); return; }
+  await loadStaff(); updateBadges(); renderStaff();
+  toast(`已加入 ${email} ✓`);
+}
+async function removeStaff(email) {
+  if (email === myEmail) return;
+  if (!confirm(`確定把 ${email} 移出管理人員名單嗎？\n（對方將無法再進入後台）`)) return;
+  const { error } = await sb.from('admin_users').delete().eq('email', email);
+  if (error) { alert('移除失敗：' + error.message); return; }
+  await loadStaff(); updateBadges(); renderStaff();
+  toast(`已移除 ${email}`);
+}
+
 /* ════════════════════════════════════
    Event CRUD
 ════════════════════════════════════ */
 function openEventModal(id) {
   editId = id;
-  const e = id ? events.find(x => x.id === id) : null;
+  const e = id ? data.events.find(x => x.id === id) : null;
   document.getElementById('eventModalTitle').textContent = id ? '編輯活動' : '新增活動';
   document.getElementById('e_title').value    = e?.title    || '';
   document.getElementById('e_type').value     = e?.type     || '';
@@ -957,16 +966,13 @@ function openEventModal(id) {
   switchTab('event', 0);
   showModal('eventModal');
 }
-
-function saveEvent() {
+async function saveEvent() {
   const title = document.getElementById('e_title').value.trim();
   const date  = document.getElementById('e_date').value;
   if (!title || !date) { alert('請填寫活動名稱與日期'); return; }
-  const obj = {
-    id:       editId || nextId(events),
-    title,
+  const item = {
+    title, date,
     type:     document.getElementById('e_type').value.trim(),
-    date,
     time:     document.getElementById('e_time').value.trim(),
     location: document.getElementById('e_location').value.trim(),
     status:   document.getElementById('e_status').value,
@@ -977,22 +983,15 @@ function saveEvent() {
     quota:    document.getElementById('e_quota').value.trim() || '不限',
     regLink:  document.getElementById('e_link').value.trim()
   };
-  if (editId) {
-    const i = events.findIndex(x => x.id === editId);
-    events[i] = obj;
-    toast('活動已更新 ✓');
-  } else {
-    events.push(obj);
-    toast('活動已新增 ✓');
-  }
-  save(); closeModal('eventModal'); renderEvents();
+  const wasEdit = !!editId;
+  if (!await withSaving('eventSaveBtn', () => saveItem('events', editId, item))) return;
+  closeModal('eventModal'); renderEvents();
+  toast(wasEdit ? '活動已更新，網站已同步 ✓' : '活動已新增，網站已同步 ✓');
 }
-
-function deleteEvent(id) {
-  const e = events.find(x => x.id === id);
-  if (!confirm(`確定刪除「${e.title}」嗎？`)) return;
-  events = events.filter(x => x.id !== id);
-  save(); renderEvents(); toast('已刪除');
+async function deleteEvent(id) {
+  const e = data.events.find(x => x.id === id);
+  if (!confirm(`確定刪除「${e.title}」嗎？\n（網站會立即移除）`)) return;
+  if (await deleteItem('events', id)) { renderEvents(); toast('已刪除，網站已同步'); }
 }
 
 /* ════════════════════════════════════
@@ -1000,92 +999,61 @@ function deleteEvent(id) {
 ════════════════════════════════════ */
 function openPhotoModal(id) {
   editId = id;
-  const p = id ? photos.find(x => x.id === id) : null;
+  const p = id ? data.photos.find(x => x.id === id) : null;
   document.getElementById('photoModalTitle').textContent = id ? '編輯照片' : '新增照片';
-  document.getElementById('p_title').value = p?.title    || '';
-  document.getElementById('p_date').value  = p?.date     || today();
-  document.getElementById('p_cat').value   = p?.category || '活動紀錄';
-  document.getElementById('p_src').value   = p?.src      || '';
-  document.getElementById('p_desc').value  = p?.desc     || '';
+  document.getElementById('p_title').value  = p?.title    || '';
+  document.getElementById('p_date').value   = p?.date     || today();
+  document.getElementById('p_cat').value    = p?.category || '活動紀錄';
+  document.getElementById('p_src').value    = p?.src      || '';
+  document.getElementById('p_desc').value   = p?.desc     || '';
   document.getElementById('p_images').value = (p?.images || []).join('\n');
-  document.getElementById('p_video').value  = p?.video   || '';
+  document.getElementById('p_video').value  = p?.video    || '';
   document.getElementById('p_upStatus').textContent  = '';
   document.getElementById('p_upStatus2').textContent = '';
   updatePreview();
   showModal('photoModal');
 }
-
 async function savePhoto() {
   const title = document.getElementById('p_title').value.trim();
   const src   = document.getElementById('p_src').value.trim();
   const date  = document.getElementById('p_date').value;
   if (!title || !src || !date) { alert('請填寫標題、日期，並上傳或填寫封面照片'); return; }
-  const p = {
+  const item = {
     title, src, date,
     category: document.getElementById('p_cat').value,
     desc:     document.getElementById('p_desc').value.trim(),
     images:   document.getElementById('p_images').value.split('\n').map(s => s.trim()).filter(Boolean),
     video:    document.getElementById('p_video').value.trim()
   };
-  const btn = document.getElementById('photoSaveBtn');
-  btn.disabled = true; btn.textContent = '儲存中…';
-  let error;
-  if (editId) {
-    const cur = photos.find(x => x.id === editId);
-    ({ error } = await sb.from('photos').update(photoToRow(p, cur ? cur.sort_order : 0)).eq('id', editId));
-  } else {
-    // 新照片排在最上面
-    const top = photos.length ? Math.min(...photos.map(x => x.sort_order ?? 0)) - 1 : 0;
-    ({ error } = await sb.from('photos').insert(photoToRow(p, top)));
-  }
-  btn.disabled = false; btn.textContent = '💾 儲存';
-  if (error) { alert('儲存失敗：' + error.message); return; }
   const wasEdit = !!editId;
-  await loadPhotosFromDb(); save();
+  if (!await withSaving('photoSaveBtn', () => saveItem('photos', editId, item))) return;
   closeModal('photoModal'); renderGallery();
   toast(wasEdit ? '照片已更新，網站已同步 ✓' : '照片已新增，網站已同步 ✓');
 }
-
 async function deletePhoto(id) {
-  const p = photos.find(x => x.id === id);
+  const p = data.photos.find(x => x.id === id);
   if (!confirm(`確定刪除「${p.title}」嗎？\n（網站會立即移除這則）`)) return;
-  const { error } = await sb.from('photos').delete().eq('id', id);
-  if (error) { alert('刪除失敗：' + error.message); return; }
+  if (!await deleteItem('photos', id)) return;
   // 一併刪除存在線上圖庫的圖檔，節省空間（GitHub 上的舊圖不受影響）
   const paths = [p.src, ...(p.images || [])].map(storagePath).filter(Boolean);
   if (paths.length) await sb.storage.from('gallery').remove(paths);
-  photos = photos.filter(x => x.id !== id);
-  save(); renderGallery(); toast('已刪除，網站已同步');
+  renderGallery(); toast('已刪除，網站已同步');
 }
-
 // 依日期由新到舊重新排序（同日期維持目前順序）；手動排的順序會被覆蓋
 async function sortPhotosByDate() {
   if (!confirm('確定把所有照片依日期由新到舊重新排列嗎？\n（目前手動排的順序會被覆蓋）')) return;
-  photos.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
-  await persistPhotoOrder();
+  sortByDateDesc(data.photos);
+  await persistOrder('photos');
   toast('已依日期排序，網站已同步 ✓');
 }
-
 // 上移(dir=-1)/下移(dir=1)照片，順序即為網站顯示順序
 async function movePhoto(id, dir) {
+  const photos = data.photos;
   const i = photos.findIndex(x => x.id === id);
-  if (i < 0) return;
   const j = i + dir;
-  if (j < 0 || j >= photos.length) return;
+  if (i < 0 || j < 0 || j >= photos.length) return;
   [photos[i], photos[j]] = [photos[j], photos[i]];
-  await persistPhotoOrder();
-}
-
-// 一次性：把 gallery.html 內建的舊資料匯入資料庫（資料庫是空的才會出現按鈕）
-async function importPhotosToDb() {
-  if (photos.length) { alert('線上已有資料，不需要匯入。'); return; }
-  const old = await loadOne('gallery.html', 'PHOTOS');
-  if (!Array.isArray(old) || !old.length) { alert('讀不到現有的生活點滴資料。\n請確認是從網址（sunnywarmth2025.com.tw/admin.html）開啟後台。'); return; }
-  if (!confirm(`要把現有的 ${old.length} 則生活點滴匯入線上資料庫嗎？\n（只需做一次；圖片沿用 GitHub 上的檔案，不用重傳）`)) return;
-  const { error } = await sb.from('photos').insert(old.map((p, i) => photoToRow(p, i)));
-  if (error) { alert('匯入失敗：' + error.message); return; }
-  await loadPhotosFromDb(); save(); renderGallery();
-  toast(`已匯入 ${photos.length} 則，網站已同步 ✓`);
+  await persistOrder('photos');
 }
 
 // 與前台 gallery.html 的 photoSrc 同規則：檔名自動補 gallery/ 與 .jpg，網址原樣使用
@@ -1100,6 +1068,18 @@ function adminImg(s) {
 function storagePath(url) {
   const m = String(url || '').match(/\/storage\/v1\/object\/public\/gallery\/(.+)$/);
   return m ? decodeURIComponent(m[1]) : null;
+}
+function updatePreview() {
+  const src = document.getElementById('p_src').value.trim();
+  const img = document.getElementById('prevImg');
+  const ph  = document.querySelector('#imgPrev .img-ph');
+  if (src) {
+    img.src = adminImg(src); img.style.display = 'block';
+    ph.style.display = 'none';
+    img.onerror = () => { img.style.display = 'none'; ph.style.display = ''; };
+  } else {
+    img.style.display = 'none'; ph.style.display = '';
+  }
 }
 
 // 上傳前自動壓縮：長邊最多 1400px、JPEG 品質 0.8（省線上空間、網站載入快）
@@ -1181,13 +1161,14 @@ function dropOn(ev, targetId) {
   ev.preventDefault();
   stopDragScroll();
   if (dragId === null || dragId === targetId) return;
+  const photos = data.photos;
   const from = photos.findIndex(x => x.id === dragId);
   if (from < 0) return;
   const [item] = photos.splice(from, 1);
   const to = photos.findIndex(x => x.id === targetId);   // 移除後重新定位目標
   photos.splice(to < 0 ? photos.length : to, 0, item);
   dragId = null;
-  persistPhotoOrder();
+  persistOrder('photos');
 }
 
 /* ════════════════════════════════════
@@ -1195,7 +1176,7 @@ function dropOn(ev, targetId) {
 ════════════════════════════════════ */
 function openCreditModal(id) {
   editId = id;
-  const c = id ? credits.find(x => x.id === id) : null;
+  const c = id ? data.credits.find(x => x.id === id) : null;
   document.getElementById('creditModalTitle').textContent = id ? '編輯徵信' : '新增徵信';
   document.getElementById('c_title').value   = c ? c.title : '';
   document.getElementById('c_date').value    = c ? c.date : today();
@@ -1203,34 +1184,30 @@ function openCreditModal(id) {
   document.getElementById('c_content').value = c ? (c.content || '') : '';
   showModal('creditModal');
 }
-function saveCredit() {
+async function saveCredit() {
   const title = document.getElementById('c_title').value.trim();
   const date  = document.getElementById('c_date').value;
   if (!title || !date) { alert('請填寫標題與日期'); return; }
-  const obj = {
-    id: editId || nextId(credits),
+  const item = {
     title, date,
     link:    document.getElementById('c_link').value.trim(),
     content: document.getElementById('c_content').value.trim()
   };
-  if (editId) {
-    const i = credits.findIndex(x => x.id === editId);
-    credits[i] = obj; toast('徵信已更新 ✓');
-  } else {
-    credits.unshift(obj); toast('徵信已新增 ✓');
-  }
-  save(); closeModal('creditModal'); renderCredit();
+  const wasEdit = !!editId;
+  if (!await withSaving('creditSaveBtn', () => saveItem('credits', editId, item))) return;
+  closeModal('creditModal'); renderCredit();
+  toast(wasEdit ? '徵信已更新，網站已同步 ✓' : '徵信已新增，網站已同步 ✓');
 }
-function deleteCredit(id) {
-  const c = credits.find(x => x.id === id);
-  if (!confirm(`確定刪除「${c.title}」嗎？`)) return;
-  credits = credits.filter(x => x.id !== id);
-  save(); renderCredit(); toast('已刪除');
+async function deleteCredit(id) {
+  const c = data.credits.find(x => x.id === id);
+  if (!confirm(`確定刪除「${c.title}」嗎？\n（網站會立即移除）`)) return;
+  if (await deleteItem('credits', id)) { renderCredit(); toast('已刪除，網站已同步'); }
 }
-function sortCreditsByDate() {
+async function sortCreditsByDate() {
   if (!confirm('確定把徵信依日期由新到舊重新排列嗎？\n（目前手動排的順序會被覆蓋）')) return;
-  credits.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
-  save(); renderCredit(); toast('已依日期排序 ✓');
+  sortByDateDesc(data.credits);
+  await persistOrder('credits');
+  toast('已依日期排序，網站已同步 ✓');
 }
 
 /* ════════════════════════════════════
@@ -1238,183 +1215,36 @@ function sortCreditsByDate() {
 ════════════════════════════════════ */
 function openSupplyModal(id) {
   editId = id;
-  const s = id ? supplies.find(x => x.id === id) : null;
+  const s = id ? data.supplies.find(x => x.id === id) : null;
   document.getElementById('supplyModalTitle').textContent = id ? '編輯物資' : '新增物資';
   document.getElementById('s_name').value   = s ? s.name : '';
   document.getElementById('s_status').value = s ? s.status : '需要中';
   document.getElementById('s_desc').value   = s ? (s.desc || '') : '';
   showModal('supplyModal');
 }
-function saveSupply() {
+async function saveSupply() {
   const name = document.getElementById('s_name').value.trim();
   if (!name) { alert('請填寫品項名稱'); return; }
-  const obj = {
-    id: editId || nextId(supplies),
+  const item = {
     name,
     status: document.getElementById('s_status').value,
     desc:   document.getElementById('s_desc').value.trim()
   };
-  if (editId) {
-    const i = supplies.findIndex(x => x.id === editId);
-    supplies[i] = obj; toast('物資已更新 ✓');
-  } else {
-    supplies.push(obj); toast('物資已新增 ✓');
-  }
-  save(); closeModal('supplyModal'); renderSupply();
+  const wasEdit = !!editId;
+  if (!await withSaving('supplySaveBtn', () => saveItem('supplies', editId, item))) return;
+  closeModal('supplyModal'); renderSupply();
+  toast(wasEdit ? '物資已更新，網站已同步 ✓' : '物資已新增，網站已同步 ✓');
 }
-function deleteSupply(id) {
-  const s = supplies.find(x => x.id === id);
-  if (!confirm(`確定刪除「${s.name}」嗎？`)) return;
-  supplies = supplies.filter(x => x.id !== id);
-  save(); renderSupply(); toast('已刪除');
-}
-
-function updatePreview() {
-  const src = document.getElementById('p_src').value.trim();
-  const img = document.getElementById('prevImg');
-  const ph  = document.querySelector('#imgPrev .img-ph');
-  if (src) {
-    img.src = adminImg(src); img.style.display = 'block';
-    ph.style.display = 'none';
-    img.onerror = () => { img.style.display = 'none'; ph.style.display = ''; };
-  } else {
-    img.style.display = 'none'; ph.style.display = '';
-  }
-}
-
-/* ════════════════════════════════════
-   Download / Export
-════════════════════════════════════ */
-// 各區塊對應的檔案（徵信與物資都在 donate.html）
-const DL_FILE = { events:'events.html', gallery:'gallery.html', credit:'donate.html', supply:'participate.html' };
-
-// 依標記名稱替換檔案中的資料區塊
-function replaceBlock(html, name, code) {
-  const esc = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const re = new RegExp(esc(`/* ==${name}_DATA_START== */`) + '[\\s\\S]*?' + esc(`/* ==${name}_DATA_END== */`));
-  return html.replace(re, code);
-}
-
-// 針對下載類型，把對應資料寫進取回的 HTML
-function buildDl(type, html) {
-  if (type === 'events')  return replaceBlock(html, 'EVENTS', genEventsCode());
-  if (type === 'gallery') return replaceBlock(html, 'PHOTOS', genPhotosCode());
-  if (type === 'credit')  return replaceBlock(html, 'CREDIT', genCreditCode()); // donate.html
-  return replaceBlock(html, 'SUPPLY', genSupplyCode());                          // participate.html
-}
-
-async function openDownload(type) {
-  dlType = type;
-  const filename = DL_FILE[type];
-  document.getElementById('dlTitle').textContent = `下載更新後的 ${filename}`;
-  document.getElementById('dlNotice').innerHTML =
-    `<strong>📥 說明：</strong>下載 <strong>${filename}</strong>，上傳到 GitHub 取代原本的檔案，網站即會自動更新。`;
-  document.getElementById('dlFallback').style.display = 'none';
-
-  try {
-    const res = await fetch(filename + '?t=' + Date.now());
-    if (!res.ok) throw new Error('fetch failed');
-    dlHtml = buildDl(type, await res.text());
-    document.getElementById('dlBtn').disabled = false;
-  } catch {
-    dlHtml = '';
-    const fb = type === 'events'  ? genEventsCode()
-             : type === 'gallery' ? genPhotosCode()
-             : type === 'credit'  ? genCreditCode()
-             :                      genSupplyCode();
-    document.getElementById('dlCode').textContent = fb;
-    document.getElementById('dlFallback').style.display = '';
-    document.getElementById('dlBtn').disabled = true;
-  }
-  showModal('dlModal');
-}
-
-function doDownload() {
-  if (!dlHtml) return;
-  const filename = DL_FILE[dlType];
-  const blob = new Blob([dlHtml], { type: 'text/html;charset=utf-8' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  a.click();
-  toast('檔案下載中 ✓');
-}
-
-function copyCode() {
-  const txt = document.getElementById('dlCode').textContent;
-  navigator.clipboard.writeText(txt).then(() => {
-    document.getElementById('copyOk').style.display = 'inline';
-    setTimeout(() => document.getElementById('copyOk').style.display = 'none', 2000);
-  });
-}
-
-/* ════════════════════════════════════
-   Code generators
-════════════════════════════════════ */
-function genEventsCode() {
-  const lines = events.map(e => `  {
-    id: ${e.id},
-    title: ${q(e.title)},
-    type: ${q(e.type||'')},
-    date: ${q(e.date)},
-    time: ${q(e.time||'')},
-    location: ${q(e.location||'')},
-    status: ${q(e.status)},
-    desc: ${q(e.desc||'')},
-    detail: ${q(e.detail||'')},
-    contact: ${q(e.contact||'')},
-    fee: ${q(e.fee||'免費')},
-    quota: ${q(e.quota||'不限')},
-    regLink: ${q(e.regLink||'')}
-  }`);
-  return `/* ==EVENTS_DATA_START== */\nconst EVENTS = [\n${lines.join(',\n')}\n];\n/* ==EVENTS_DATA_END== */`;
-}
-
-function genPhotosCode() {
-  const lines = photos.map(p => {
-    let extra = '';
-    if (p.images && p.images.length) extra += `,\n    images: ${JSON.stringify(p.images)}`;
-    if (p.video) extra += `,\n    video: ${q(p.video)}`;
-    return `  {
-    id: ${p.id},
-    src: ${q(p.src)},
-    title: ${q(p.title)},
-    date: ${q(p.date)},
-    category: ${q(p.category)},
-    desc: ${q(p.desc||'')}${extra}
-  }`;
-  });
-  return `/* ==PHOTOS_DATA_START== */\nconst PHOTOS = [\n${lines.join(',\n')}\n];\n/* ==PHOTOS_DATA_END== */`;
-}
-
-function genCreditCode() {
-  const lines = credits.map(c => `  {
-    id: ${c.id},
-    title: ${q(c.title)},
-    date: ${q(c.date)},
-    link: ${q(c.link||'')},
-    content: ${q(c.content||'')}
-  }`);
-  return `/* ==CREDIT_DATA_START== */\nconst CREDITS = [\n${lines.join(',\n')}\n];\n/* ==CREDIT_DATA_END== */`;
-}
-
-function genSupplyCode() {
-  const lines = supplies.map(s => `  {
-    id: ${s.id},
-    name: ${q(s.name)},
-    status: ${q(s.status)},
-    desc: ${q(s.desc||'')}
-  }`);
-  return `/* ==SUPPLY_DATA_START== */\nconst SUPPLIES = [\n${lines.join(',\n')}\n];\n/* ==SUPPLY_DATA_END== */`;
+async function deleteSupply(id) {
+  const s = data.supplies.find(x => x.id === id);
+  if (!confirm(`確定刪除「${s.name}」嗎？\n（網站會立即移除）`)) return;
+  if (await deleteItem('supplies', id)) { renderSupply(); toast('已刪除，網站已同步'); }
 }
 
 /* ════════════════════════════════════
    Helpers
 ════════════════════════════════════ */
-function q(s) { return JSON.stringify(String(s)); }
-function nextId(arr) { return arr.length ? Math.max(...arr.map(x => x.id)) + 1 : 1; }
 function today() { return new Date().toISOString().slice(0, 10); }
-
 function showModal(id) { document.getElementById(id).classList.add('on'); }
 function closeModal(id) { document.getElementById(id).classList.remove('on'); }
 
@@ -1426,43 +1256,15 @@ function switchTab(group, idx) {
   });
 }
 
+// 下載一份目前所有線上資料的備份（建議偶爾存一份在電腦裡）
 function exportBackup() {
-  const data = { events, photos, credits, supplies, exportedAt: new Date().toISOString() };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const backup = { ...data, staff, exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `暖晴備份_${today()}.json`;
   a.click();
   toast('備份已下載 ✓');
-}
-
-function importBackup(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (Array.isArray(data.events) && Array.isArray(data.photos)) {
-        const nc = Array.isArray(data.credits) ? data.credits.length : 0;
-        const ns = Array.isArray(data.supplies) ? data.supplies.length : 0;
-        if (!confirm(`確定匯入備份嗎？\n活動：${data.events.length} 筆　徵信：${nc} 筆　物資：${ns} 筆\n（目前後台資料將被取代）\n\n※ 生活點滴已改存線上資料庫，不會被備份覆蓋`)) return;
-        events = data.events;
-        if (Array.isArray(data.credits))  credits  = data.credits;
-        if (Array.isArray(data.supplies)) supplies = data.supplies;
-        save();
-        updateBadges();
-        renderSection();
-        toast('備份匯入成功 ✓');
-      } else {
-        alert('備份檔格式錯誤，請確認是正確的暖晴備份 JSON');
-      }
-    } catch {
-      alert('無法讀取此檔案，請確認是正確的 JSON 格式');
-    }
-    input.value = '';
-  };
-  reader.readAsText(file);
 }
 
 function toast(msg) {
@@ -1482,8 +1284,20 @@ document.querySelectorAll('.backdrop').forEach(bd => {
 /* ════════════════════════════════════
    Init
 ════════════════════════════════════ */
-localStorage.removeItem('sw_auth');   // 舊版密碼登入的記號，已不再使用
-sb.auth.getSession().then(({ data }) => { if (data.session) enterAdmin(); });
+// 清掉舊版存在瀏覽器裡的資料（現在全部以線上資料庫為準）
+['sw_auth', 'sw_events', 'sw_photos', 'sw_credits', 'sw_supplies'].forEach(k => localStorage.removeItem(k));
+
+// Google 登入失敗時，Supabase 會把原因帶在網址上
+const authErr = new URLSearchParams(location.hash.slice(1)).get('error_description')
+             || new URLSearchParams(location.search).get('error_description');
+if (authErr) showLogin('Google 登入失敗：' + authErr);
+
+// 登入狀態改變時（含開啟頁面、Google 登入回來）自動處理
+sb.auth.onAuthStateChange((event, session) => {
+  // 依 Supabase 建議，不在這個回呼裡直接等待其他 Supabase 呼叫，改排到下一輪執行
+  if (session) setTimeout(() => enterAdmin(session), 0);
+  else if (entered) { entered = false; showLogin('已登出，請重新登入'); }
+});
 </script>
 </body>
 </html>
