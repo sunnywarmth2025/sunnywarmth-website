@@ -536,7 +536,29 @@
    線上資料庫（Supabase）：存檔即上線
    連線設定在 db.js（全站共用）
 ════════════════════════════════════ */
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { global: { fetch: fetchWithFreshLogin } });
+
+// 登入憑證約一小時過期，平常會自動換新；但頁面開很久或電腦睡眠後可能來不及，
+// 這時寫入或上傳會回「JWT expired」或「"exp" claim timestamp check failed」。
+// 遇到這種情況就先換一張新憑證，再自動重試一次。
+const EXPIRED_RE = /JWT expired|exp\\?" claim timestamp check failed/i;
+async function fetchWithFreshLogin(input, init = {}) {
+  const res = await fetch(input, init);
+  const url = typeof input === 'string' ? input : input.url;
+  if (res.ok || url.includes('/auth/v1/')) return res;
+  const body = await res.clone().text().catch(() => '');
+  if (!EXPIRED_RE.test(body)) return res;
+  const { data, error } = await sb.auth.refreshSession();
+  if (error || !data.session) return res;
+  const headers = new Headers(init.headers);
+  headers.set('Authorization', 'Bearer ' + data.session.access_token);
+  return fetch(input, { ...init, headers });
+}
+// 換新也失敗（例如很久沒用、登入整個失效）時，給看得懂的提示
+function friendlyError(e) {
+  const msg = (e && e.message) || String(e);
+  return EXPIRED_RE.test(msg) ? '登入已過期，請重新整理頁面（F5）並再登入一次' : msg;
+}
 
 /* 各區塊與資料表的對應
    from / to：資料庫欄位 ↔ 後台使用的欄位
@@ -588,7 +610,7 @@ async function loadTable(key) {
   const t = TABLES[key];
   const { data: rows, error } = await sb.from(t.table).select('*')
     .order('sort_order', { ascending: true }).order('id', { ascending: true });
-  if (error) { toast(`讀取${t.name}失敗：${error.message}`); return; }
+  if (error) { toast(`讀取${t.name}失敗：${friendlyError(error)}`); return; }
   data[key] = rows.map(t.from);
 }
 async function loadStaff() {
@@ -615,14 +637,14 @@ async function saveItem(key, id, item) {
     const order = !orders.length ? 0 : t.newOnTop ? Math.min(...orders) - 1 : Math.max(...orders) + 1;
     ({ error } = await sb.from(t.table).insert({ ...t.to(item), sort_order: order }));
   }
-  if (error) { alert('儲存失敗：' + error.message); return false; }
+  if (error) { alert('儲存失敗：' + friendlyError(error)); return false; }
   await loadTable(key);
   updateBadges();
   return true;
 }
 async function deleteItem(key, id) {
   const { error } = await sb.from(TABLES[key].table).delete().eq('id', id);
-  if (error) { alert('刪除失敗：' + error.message); return false; }
+  if (error) { alert('刪除失敗：' + friendlyError(error)); return false; }
   data[key] = data[key].filter(x => x.id !== id);
   updateBadges();
   return true;
@@ -633,7 +655,7 @@ async function persistOrder(key) {
   data[key].forEach((x, i) => { x.sort_order = i; });
   renderSection();
   const { error } = await sb.from(t.table).upsert(data[key].map((x, i) => ({ id: x.id, ...t.to(x), sort_order: i })));
-  if (error) { alert('排序儲存失敗：' + error.message); await loadTable(key); renderSection(); }
+  if (error) { alert('排序儲存失敗：' + friendlyError(error)); await loadTable(key); renderSection(); }
 }
 // 儲存按鈕執行期間顯示「儲存中…」並避免重複點擊
 async function withSaving(btnId, fn) {
@@ -664,7 +686,7 @@ async function importToDb(key) {
   if (!Array.isArray(old) || !old.length) { alert(`「${t.name}」沒有可以匯入的舊資料，直接按「新增」開始即可。`); return; }
   if (!confirm(`要把現有的 ${old.length} 筆${t.name}匯入線上資料庫嗎？（只需要做一次）`)) return;
   const { error } = await sb.from(t.table).insert(old.map((x, i) => ({ ...t.to(x), sort_order: i })));
-  if (error) { alert('匯入失敗：' + error.message); return; }
+  if (error) { alert('匯入失敗：' + friendlyError(error)); return; }
   await loadTable(key); updateBadges(); renderSection();
   toast(`已匯入 ${data[key].length} 筆${t.name}，網站已同步 ✓`);
 }
@@ -710,7 +732,7 @@ async function enterAdmin(session) {
   if (error || ok !== true) {
     entered = false;
     await sb.auth.signOut();
-    showLogin(error ? '無法確認權限：' + error.message
+    showLogin(error ? '無法確認權限：' + friendlyError(error)
                     : `${myEmail} 不在管理人員名單內，請現任管理員到「管理人員」把你加進來。`);
     return;
   }
@@ -931,7 +953,7 @@ async function addStaff() {
   if (!/^[^@\s'"<>]+@[^@\s'"<>]+\.[^@\s'"<>]+$/.test(email)) { alert('請輸入正確的 Email'); return; }
   if (staff.some(s => s.email === email)) { alert('這個帳號已經在名單裡了'); return; }
   const { error } = await sb.from('admin_users').insert({ email, name });
-  if (error) { alert('新增失敗：' + error.message); return; }
+  if (error) { alert('新增失敗：' + friendlyError(error)); return; }
   await loadStaff(); updateBadges(); renderStaff();
   toast(`已加入 ${email} ✓`);
 }
@@ -939,7 +961,7 @@ async function removeStaff(email) {
   if (email === myEmail) return;
   if (!confirm(`確定把 ${email} 移出管理人員名單嗎？\n（對方將無法再進入後台）`)) return;
   const { error } = await sb.from('admin_users').delete().eq('email', email);
-  if (error) { alert('移除失敗：' + error.message); return; }
+  if (error) { alert('移除失敗：' + friendlyError(error)); return; }
   await loadStaff(); updateBadges(); renderStaff();
   toast(`已移除 ${email}`);
 }
@@ -1116,7 +1138,7 @@ async function uploadCover(input) {
     document.getElementById('p_src').value = await uploadToGallery(f);
     updatePreview();
     st.textContent = '✓ 已上傳';
-  } catch (e) { st.textContent = '上傳失敗：' + e.message; }
+  } catch (e) { st.textContent = '上傳失敗：' + friendlyError(e); }
   input.value = '';
 }
 async function uploadMore(input) {
