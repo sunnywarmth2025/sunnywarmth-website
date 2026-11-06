@@ -516,6 +516,10 @@ async function loadCredits() {
   if (rows) creditList = rows.map(r => ({ id: r.id, title: r.title, date: r.date, link: r.link, content: r.content }));
   renderCredits();
 }
+// 把資料庫文字裡的 < > & " ' 轉成安全字元，避免標題含特殊符號時弄亂版面
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
 function renderCredits() {
   const grid = document.getElementById('credit-grid');
   if (!grid) return;
@@ -524,10 +528,10 @@ function renderCredits() {
     const month = (c.title || '').split(' ')[0];
     return `<div class="credit-card" onclick="openCredit(${c.id})">
       <div class="credit-thumb">
-        <div class="credit-month">${month}</div>
+        <div class="credit-month">${esc(month)}</div>
         <div class="credit-label">捐款芳名錄</div>
       </div>
-      <div class="credit-caption">${c.title}</div>
+      <div class="credit-caption">${esc(c.title)}</div>
     </div>`;
   }).join('');
 }

@@ -851,6 +851,10 @@ async function loadPhotos() {
   renderGallery('all');
 }
 
+// 把資料庫文字裡的 < > & " ' 轉成安全字元，避免標題含特殊符號時弄亂版面
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
 function renderGallery(cat) {
   const grid = document.getElementById('gallery-grid');
   const list = cat === 'all' ? photoList : photoList.filter(p => p.category === cat);
@@ -868,10 +872,10 @@ function renderGallery(cat) {
     const mediaBadge = badges.length ? `<div class="gallery-media-badge">${badges.join('')}</div>` : '';
     return `<div class="gallery-card" onclick="openLightbox(${p.id})">
       ${mediaBadge}
-      <span class="gallery-cat-badge">${p.category}</span>
-      <img src="${photoSrc(p.src)}" alt="${p.title}" loading="lazy" />
+      <span class="gallery-cat-badge">${esc(p.category)}</span>
+      <img src="${esc(photoSrc(p.src))}" alt="${esc(p.title)}" loading="lazy" />
       <div class="gallery-card-overlay">
-        <h4>${p.title}</h4>
+        <h4>${esc(p.title)}</h4>
         <span>${dateStr}</span>
       </div>
     </div>`;
@@ -904,9 +908,9 @@ function renderLbMedia() {
     const id = ytId(item.url);
     stage.innerHTML = id
       ? `<div class="lb-video"><iframe src="https://www.youtube-nocookie.com/embed/${id}" title="影片" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`
-      : `<a class="lb-video-link" href="${item.url}" target="_blank" rel="noopener"><span class="play">▶</span><span>觀看影片</span></a>`;
+      : `<a class="lb-video-link" href="${esc(item.url)}" target="_blank" rel="noopener"><span class="play">▶</span><span>觀看影片</span></a>`;
   } else {
-    stage.innerHTML = `<img src="${item.src}" alt="${item.alt || ''}" />`;
+    stage.innerHTML = `<img src="${esc(item.src)}" alt="${esc(item.alt)}" />`;
   }
   const many = lbMedia.length > 1;
   document.getElementById('lb-prev').style.display = many ? '' : 'none';
