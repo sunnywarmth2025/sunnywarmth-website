@@ -766,11 +766,11 @@ function renderEvents() {
   const SC = { open:'b-open', soon:'b-soon', full:'b-full', ended:'b-ended' };
   const rows = data.events.length ? data.events.map(e => `
     <tr>
-      <td><strong>${e.title}</strong><br><span style="color:#aaa;font-size:11px">${e.type||''}</span></td>
-      <td>${e.date}</td>
-      <td>${e.time||'—'}</td>
-      <td>${e.location||'—'}</td>
-      <td><span class="badge ${SC[e.status]||'b-ended'}">${STATUS[e.status]||e.status}</span></td>
+      <td><strong>${esc(e.title)}</strong><br><span style="color:#aaa;font-size:11px">${esc(e.type)}</span></td>
+      <td>${esc(e.date)}</td>
+      <td>${esc(e.time)||'—'}</td>
+      <td>${esc(e.location)||'—'}</td>
+      <td><span class="badge ${SC[e.status]||'b-ended'}">${STATUS[e.status]||esc(e.status)}</span></td>
       <td class="col-actions">
         <button class="btn btn-ghost btn-sm" onclick="openEventModal(${e.id})">✏️ 編輯</button>
         <button class="btn btn-danger btn-sm" onclick="deleteEvent(${e.id})">🗑 刪除</button>
@@ -796,17 +796,17 @@ function renderGallery() {
   const photos = data.photos;
   const rows = photos.length ? photos.map((p, idx) => {
     const thumb = p.src
-      ? `<img class="thumb" src="${adminImg(p.src)}" alt="${p.title}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><div class="thumb-ph" style="display:none">🖼️</div>`
+      ? `<img class="thumb" src="${esc(adminImg(p.src))}" alt="${esc(p.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><div class="thumb-ph" style="display:none">🖼️</div>`
       : `<div class="thumb-ph">🖼️</div>`;
     const upDis   = idx === 0 ? 'disabled style="opacity:.3"' : '';
     const downDis = idx === photos.length - 1 ? 'disabled style="opacity:.3"' : '';
     return `<tr draggable="true" style="cursor:grab"
         ondragstart="dragStart(event,${p.id})" ondragend="dragEnd(event)"
         ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropOn(event,${p.id})">
-      <td><div style="display:flex;align-items:center;gap:10px"><span title="拖曳排序" style="color:#bbb;cursor:grab;user-select:none">⠿</span>${thumb}<span>${p.title}${p.video ? ' 🎬' : ''}${p.images && p.images.length ? ` 📷${1 + p.images.length}` : ''}</span></div></td>
-      <td>${p.date}</td>
-      <td><span class="badge ${CAT_C[p.category]||''}">${p.category}</span></td>
-      <td style="color:#aaa;font-size:12px">${/^https?:\/\//i.test(p.src) ? '☁️ 線上圖庫' : p.src}</td>
+      <td><div style="display:flex;align-items:center;gap:10px"><span title="拖曳排序" style="color:#bbb;cursor:grab;user-select:none">⠿</span>${thumb}<span>${esc(p.title)}${p.video ? ' 🎬' : ''}${p.images && p.images.length ? ` 📷${1 + p.images.length}` : ''}</span></div></td>
+      <td>${esc(p.date)}</td>
+      <td><span class="badge ${CAT_C[p.category]||''}">${esc(p.category)}</span></td>
+      <td style="color:#aaa;font-size:12px">${/^https?:\/\//i.test(p.src) ? '☁️ 線上圖庫' : esc(p.src)}</td>
       <td class="col-actions">
         <button class="btn btn-ghost btn-sm" onclick="movePhoto(${p.id},-1)" title="上移" ${upDis}>▲</button>
         <button class="btn btn-ghost btn-sm" onclick="movePhoto(${p.id},1)" title="下移" ${downDis}>▼</button>
@@ -833,8 +833,8 @@ function renderGallery() {
 function renderCredit() {
   const rows = data.credits.length ? data.credits.map(c => `
     <tr>
-      <td><strong>${c.title}</strong></td>
-      <td>${c.date}</td>
+      <td><strong>${esc(c.title)}</strong></td>
+      <td>${esc(c.date)}</td>
       <td>${c.link ? '🔗 連結' : (c.content ? '📝 名單文字' : '—')}</td>
       <td class="col-actions">
         <button class="btn btn-ghost btn-sm" onclick="openCreditModal(${c.id})">✏️ 編輯</button>
@@ -864,9 +864,9 @@ function renderSupply() {
   };
   const rows = data.supplies.length ? data.supplies.map(s => `
     <tr>
-      <td><strong>${s.name}</strong></td>
-      <td><span class="badge" style="${SC[s.status] || SC['需要中']}">${s.status}</span></td>
-      <td style="color:#666">${s.desc || '—'}</td>
+      <td><strong>${esc(s.name)}</strong></td>
+      <td><span class="badge" style="${SC[s.status] || SC['需要中']}">${esc(s.status)}</span></td>
+      <td style="color:#666">${esc(s.desc) || '—'}</td>
       <td class="col-actions">
         <button class="btn btn-ghost btn-sm" onclick="openSupplyModal(${s.id})">✏️ 編輯</button>
         <button class="btn btn-danger btn-sm" onclick="deleteSupply(${s.id})">🗑 刪除</button>

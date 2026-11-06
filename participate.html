@@ -254,6 +254,10 @@ async function loadSupplies() {
   if (rows) supplyList = rows.map(r => ({ id: r.id, name: r.name, status: r.status, desc: r.description }));
   renderSupplies();
 }
+// 把資料庫文字裡的 < > & " ' 轉成安全字元，避免標題含特殊符號時弄亂版面
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
 function renderSupplies() {
   const grid = document.getElementById('supply-grid');
   if (!grid) return;
@@ -261,10 +265,10 @@ function renderSupplies() {
   const SC = { '急需':'urgent', '需要中':'need', '已募足':'done' };
   grid.innerHTML = supplyList.map(s => `<div class="supply-card">
     <div class="supply-head">
-      <span class="supply-name">${s.name}</span>
-      <span class="supply-badge ${SC[s.status] || 'need'}">${s.status}</span>
+      <span class="supply-name">${esc(s.name)}</span>
+      <span class="supply-badge ${SC[s.status] || 'need'}">${esc(s.status)}</span>
     </div>
-    <p class="supply-desc">${s.desc || ''}</p>
+    <p class="supply-desc">${esc(s.desc)}</p>
   </div>`).join('');
 }
 loadSupplies();

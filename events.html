@@ -172,6 +172,10 @@ function parseDate(str) {
   return {y,m,d};
 }
 
+// 把資料庫文字裡的 < > & " ' 轉成安全字元，避免標題含特殊符號時弄亂版面
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
 function renderEvents(filter) {
   const grid = document.getElementById('events-grid');
   let list = [...eventList].sort((a,b) => {
@@ -194,16 +198,16 @@ function renderEvents(filter) {
           <div class="day">${d}</div>
         </div>
         <div class="event-title">
-          <h3>${ev.title}</h3>
-          <span class="event-type-tag">${ev.type}</span>
+          <h3>${esc(ev.title)}</h3>
+          <span class="event-type-tag">${esc(ev.type)}</span>
         </div>
       </div>
       <div class="event-body">
-        <p>${ev.desc}</p>
+        <p>${esc(ev.desc)}</p>
         <div class="event-meta">
-          <span>🕐 ${ev.time}</span>
-          <span>📍 ${ev.location}</span>
-          <span>👤 名額：${ev.quota}　💰 費用：${ev.fee}</span>
+          <span>🕐 ${esc(ev.time)}</span>
+          <span>📍 ${esc(ev.location)}</span>
+          <span>👤 名額：${esc(ev.quota)}　💰 費用：${esc(ev.fee)}</span>
         </div>
       </div>
       <div class="event-footer">
@@ -220,10 +224,10 @@ function openModal(id) {
   const {y,m,d} = parseDate(ev.date);
   document.getElementById('modal-title').textContent = ev.title;
   document.getElementById('modal-meta').innerHTML = `
-    <span>📅 ${y}年${m}月${d}日　${ev.time}</span>
-    <span>📍 ${ev.location}</span>
-    <span>👤 名額：${ev.quota}　💰 費用：${ev.fee}</span>
-    <span>📞 ${ev.contact}</span>`;
+    <span>📅 ${y}年${m}月${d}日　${esc(ev.time)}</span>
+    <span>📍 ${esc(ev.location)}</span>
+    <span>👤 名額：${esc(ev.quota)}　💰 費用：${esc(ev.fee)}</span>
+    <span>📞 ${esc(ev.contact)}</span>`;
   document.getElementById('modal-desc').textContent = ev.detail;
   const btn = document.getElementById('modal-reg-btn');
   if(ev.status==='ended'||ev.status==='full'){
