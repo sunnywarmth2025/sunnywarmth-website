@@ -50,6 +50,7 @@ pay-icon/         捐款頁金流圖示
   - `credits`：title / date / link / content
   - `supplies`：name / status / description
   - `admin_users`：email（小寫）/ name —— 管理人員名單
+  - `popups`：title / image / description / link / button_text / start_at / end_at / enabled —— 首頁彈出公告（建表 SQL 在 `supabase/popups.sql`）。首頁顯示「啟用且在期間內」的第一則，同一次瀏覽只跳一次。
 - 圖片空間 `gallery`（公開讀取）：後台上傳的照片先在瀏覽器壓縮到長邊 1400px，存到 `photos/`；`src` 存完整網址。舊照片的 `src` 是檔名，對到 repo 的 `gallery/` 資料夾。
 - 權限（RLS）：所有人可讀；寫入要 `public.is_admin()` 為真＝登入帳號的 email 在 `admin_users` 裡且已驗證。
 - 後台登入：同仁用自己的 **Google 帳號**（Supabase Auth 的 Google provider），名單在後台「管理人員」頁維護；也保留 Email 密碼登入。不在名單的人登入後會被自動登出。

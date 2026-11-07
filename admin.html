@@ -265,6 +265,11 @@
         <span>物資需求</span>
         <span class="sb-badge" id="badge-supply">0</span>
       </div>
+      <div class="sb-item" id="nav-popup" onclick="showSection('popup')">
+        <span class="sb-icon">📣</span>
+        <span>彈出公告</span>
+        <span class="sb-badge" id="badge-popup">0</span>
+      </div>
       <hr class="sb-divider" />
       <div class="sb-label">系統</div>
       <div class="sb-item" id="nav-staff" onclick="showSection('staff')">
@@ -526,6 +531,72 @@
   </div>
 </div>
 
+<!-- ═══════════════ POPUP MODAL ═══════════════ -->
+<div class="backdrop" id="popupModal">
+  <div class="modal">
+    <div class="m-hdr">
+      <div class="m-title" id="popupModalTitle">新增彈出公告</div>
+      <button class="m-close" onclick="closeModal('popupModal')">✕</button>
+    </div>
+    <div class="m-body">
+      <div class="fg">
+        <label class="fl">標題 <span class="req">*</span></label>
+        <input type="text" id="pp_title" class="fc" placeholder="例：台新公益《您的一票，決定愛的力量》" />
+      </div>
+      <div class="fg">
+        <label class="fl">圖片（選填，建議放海報）</label>
+        <input type="text" id="pp_image" class="fc" placeholder="按下方上傳，或貼圖片網址" oninput="updatePopupPreview()" />
+        <input type="file" id="pp_file" accept="image/*" style="display:none" onchange="uploadPopupImage(this)" />
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('pp_file').click()">📤 上傳圖片</button>
+          <span class="fhint" id="pp_upStatus" style="margin:0"></span>
+        </div>
+      </div>
+      <div class="img-prev" id="ppPrev">
+        <span class="img-ph">🖼️</span>
+        <img id="ppPrevImg" src="" alt="" style="display:none;" />
+      </div>
+      <div class="fg" style="margin-top:14px">
+        <label class="fl">說明文字（選填）</label>
+        <textarea id="pp_desc" class="fc" rows="2" placeholder="例：暖晴投票編號 4847，11/30 17:00 截止，每天都能投！"></textarea>
+      </div>
+      <div class="f2">
+        <div class="fg">
+          <label class="fl">按鈕文字</label>
+          <input type="text" id="pp_btn" class="fc" placeholder="立即前往" />
+        </div>
+        <div class="fg">
+          <label class="fl">按鈕連結（選填）</label>
+          <input type="url" id="pp_link" class="fc" placeholder="https://..." />
+          <div class="fhint">留空就不顯示按鈕</div>
+        </div>
+      </div>
+      <div class="f2">
+        <div class="fg">
+          <label class="fl">開始時間（選填）</label>
+          <input type="datetime-local" id="pp_start" class="fc" />
+          <div class="fhint">留空＝存檔後馬上開始</div>
+        </div>
+        <div class="fg">
+          <label class="fl">結束時間（選填）</label>
+          <input type="datetime-local" id="pp_end" class="fc" />
+          <div class="fhint">時間到自動不再跳出；留空＝一直顯示</div>
+        </div>
+      </div>
+      <div class="fg">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="pp_enabled" checked /> 啟用（取消勾選可先暫停，不用刪除）
+        </label>
+      </div>
+      <div class="fhint">首頁一次只跳一則：清單中最上面、正在期間內且啟用的那則。訪客同一次瀏覽只會看到一次。</div>
+    </div>
+    <div class="m-footer">
+      <button class="btn btn-ghost" onclick="closeModal('popupModal')">取消</button>
+      <button class="btn btn-primary" id="popupSaveBtn" onclick="savePopup()">💾 儲存</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -590,13 +661,21 @@ const TABLES = {
     table: 'supplies', name: '物資', newOnTop: false, source: ['participate.html', 'SUPPLY'],
     from: r => ({ id: r.id, name: r.name, status: r.status, desc: r.description, sort_order: r.sort_order }),
     to: s => ({ name: s.name, status: s.status || '需要中', description: s.desc || '' })
+  },
+  popups: {
+    table: 'popups', name: '彈出公告', newOnTop: true, source: null,
+    from: r => ({ id: r.id, title: r.title, image: r.image, desc: r.description, link: r.link, button: r.button_text,
+                  start: r.start_at, end: r.end_at, enabled: r.enabled !== false, sort_order: r.sort_order }),
+    to: p => ({ title: p.title, image: p.image || '', description: p.desc || '', link: p.link || '',
+                button_text: p.button || '', start_at: p.start || null, end_at: p.end || null, enabled: p.enabled !== false })
   }
 };
 
 /* ════════════════════════════════════
    State
 ════════════════════════════════════ */
-const data = { events: [], photos: [], credits: [], supplies: [] };
+const data = { events: [], photos: [], credits: [], supplies: [], popups: [] };
+let popupsMissing = false;   // 資料庫還沒建 popups 資料表時為 true
 let staff   = [];        // 管理人員名單
 let section = 'events';
 let editId  = null;
@@ -610,7 +689,8 @@ async function loadTable(key) {
   const t = TABLES[key];
   const { data: rows, error } = await sb.from(t.table).select('*')
     .order('sort_order', { ascending: true }).order('id', { ascending: true });
-  if (error) { toast(`讀取${t.name}失敗：${friendlyError(error)}`); return; }
+  if (key === 'popups') popupsMissing = !!error && !EXPIRED_RE.test(error.message || '');
+  if (error) { if (!popupsMissing) toast(`讀取${t.name}失敗：${friendlyError(error)}`); return; }
   data[key] = rows.map(t.from);
 }
 async function loadStaff() {
@@ -760,6 +840,7 @@ function updateBadges() {
   document.getElementById('badge-gallery').textContent = data.photos.length;
   document.getElementById('badge-credit').textContent  = data.credits.length;
   document.getElementById('badge-supply').textContent  = data.supplies.length;
+  document.getElementById('badge-popup').textContent   = data.popups.length;
   document.getElementById('badge-staff').textContent   = staff.length;
 }
 
@@ -768,11 +849,11 @@ function updateBadges() {
 ════════════════════════════════════ */
 function renderSection() {
   ({ events: renderEvents, gallery: renderGallery, credit: renderCredit,
-     supply: renderSupply, staff: renderStaff })[section]();
+     supply: renderSupply, popup: renderPopups, staff: renderStaff })[section]();
 }
 // 每一區共用的標題列：即時上線標示＋（資料表是空的時）匯入按鈕
 function pageHeader(title, key, buttons) {
-  const importBtn = data[key].length ? '' :
+  const importBtn = (data[key].length || !TABLES[key].source) ? '' :
     `<button class="btn btn-green" onclick="importToDb('${key}')">⬆ 匯入現有資料</button>`;
   return `
     <div class="pg-hdr">
@@ -1261,6 +1342,131 @@ async function deleteSupply(id) {
   const s = data.supplies.find(x => x.id === id);
   if (!confirm(`確定刪除「${s.name}」嗎？\n（網站會立即移除）`)) return;
   if (await deleteItem('supplies', id)) { renderSupply(); toast('已刪除，網站已同步'); }
+}
+
+/* ════════════════════════════════════
+   Popup（首頁彈出公告）
+════════════════════════════════════ */
+// 資料庫存的是標準時間；datetime-local 輸入框要用電腦當地時間「YYYY-MM-DDTHH:mm」
+function toLocalInput(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d)) return '';
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function fmtTime(iso) { return iso ? toLocalInput(iso).replace('T', ' ') : ''; }
+function popupState(p) {
+  const now = new Date();
+  if (!p.enabled) return ['已暫停', 'color:#777;background:#eee'];
+  if (p.start && new Date(p.start) > now) return ['尚未開始', 'color:#b8860b;background:#fff4e0'];
+  if (p.end && new Date(p.end) <= now) return ['已結束', 'color:#777;background:#eee'];
+  return ['顯示中', 'color:#1a8f4c;background:#e8f6ee'];
+}
+function renderPopups() {
+  if (popupsMissing) {
+    document.getElementById('mainArea').innerHTML = `
+      <div class="pg-hdr"><div class="pg-title">📣 彈出公告</div></div>
+      <div class="card"><div class="empty"><div class="empty-icon">🛠️</div>
+        資料庫還沒有「彈出公告」的資料表。<br>請依說明到 Supabase 的 SQL Editor 執行一次建表指令，完成後按左側「🔄 重新整理資料」。
+      </div></div>`;
+    return;
+  }
+  const live = data.popups.find(p => popupState(p)[0] === '顯示中');
+  const rows = data.popups.length ? data.popups.map((p, i) => {
+    const [label, style] = popupState(p);
+    const upDis = i === 0 ? 'disabled' : '', downDis = i === data.popups.length - 1 ? 'disabled' : '';
+    return `
+    <tr>
+      <td><strong>${esc(p.title)}</strong>${live && live.id === p.id ? ' <span style="color:#1a8f4c;font-size:11px">← 首頁現在跳這則</span>' : ''}</td>
+      <td><span class="badge" style="${style}">${label}</span></td>
+      <td style="font-size:12px;color:#666">${esc(fmtTime(p.start)) || '立即'} ～ ${esc(fmtTime(p.end)) || '不限'}</td>
+      <td class="col-actions">
+        <button class="btn btn-ghost btn-sm" onclick="movePopup(${p.id},-1)" title="上移" ${upDis}>▲</button>
+        <button class="btn btn-ghost btn-sm" onclick="movePopup(${p.id},1)" title="下移" ${downDis}>▼</button>
+        <button class="btn btn-ghost btn-sm" onclick="openPopupModal(${p.id})">✏️ 編輯</button>
+        <button class="btn btn-danger btn-sm" onclick="deletePopup(${p.id})">🗑 刪除</button>
+      </td>
+    </tr>`; }).join('') :
+    `<tr><td colspan="4"><div class="empty"><div class="empty-icon">📣</div>尚無彈出公告，點右上角「新增」開始</div></td></tr>`;
+  document.getElementById('mainArea').innerHTML = pageHeader('📣 彈出公告（首頁）', 'popups',
+      `<button class="btn btn-ghost" onclick="window.open('index.html','_blank')">👀 開首頁看看</button>
+       <button class="btn btn-primary" onclick="openPopupModal(null)">＋ 新增公告</button>`) + `
+    <div class="card">
+      <table>
+        <thead><tr><th>標題</th><th>狀態</th><th>期間</th><th style="text-align:right">操作</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+function updatePopupPreview() {
+  const src = document.getElementById('pp_image').value.trim();
+  const img = document.getElementById('ppPrevImg');
+  const ph  = document.querySelector('#ppPrev .img-ph');
+  if (src) {
+    img.src = src; img.style.display = 'block'; ph.style.display = 'none';
+    img.onerror = () => { img.style.display = 'none'; ph.style.display = ''; };
+  } else { img.style.display = 'none'; ph.style.display = ''; }
+}
+async function uploadPopupImage(input) {
+  const f = input.files[0];
+  if (!f) return;
+  const st = document.getElementById('pp_upStatus');
+  st.textContent = '上傳中…';
+  try {
+    document.getElementById('pp_image').value = await uploadToGallery(f);
+    updatePopupPreview();
+    st.textContent = '✓ 已上傳';
+  } catch (e) { st.textContent = '上傳失敗：' + friendlyError(e); }
+  input.value = '';
+}
+function openPopupModal(id) {
+  editId = id;
+  const p = id ? data.popups.find(x => x.id === id) : null;
+  document.getElementById('popupModalTitle').textContent = id ? '編輯彈出公告' : '新增彈出公告';
+  document.getElementById('pp_title').value   = p ? p.title : '';
+  document.getElementById('pp_image').value   = p ? (p.image || '') : '';
+  document.getElementById('pp_desc').value    = p ? (p.desc || '') : '';
+  document.getElementById('pp_btn').value     = p ? (p.button || '') : '';
+  document.getElementById('pp_link').value    = p ? (p.link || '') : '';
+  document.getElementById('pp_start').value   = p ? toLocalInput(p.start) : '';
+  document.getElementById('pp_end').value     = p ? toLocalInput(p.end) : '';
+  document.getElementById('pp_enabled').checked = p ? p.enabled : true;
+  document.getElementById('pp_upStatus').textContent = '';
+  updatePopupPreview();
+  showModal('popupModal');
+}
+async function savePopup() {
+  const title = document.getElementById('pp_title').value.trim();
+  if (!title) { alert('請填寫標題'); return; }
+  const link = document.getElementById('pp_link').value.trim();
+  if (link && !/^https?:\/\//i.test(link)) { alert('按鈕連結請用 https:// 開頭的完整網址'); return; }
+  const startV = document.getElementById('pp_start').value, endV = document.getElementById('pp_end').value;
+  const start = startV ? new Date(startV).toISOString() : null;
+  const end   = endV ? new Date(endV).toISOString() : null;
+  if (start && end && end <= start) { alert('結束時間要晚於開始時間'); return; }
+  const item = {
+    title, link, start, end,
+    image:   document.getElementById('pp_image').value.trim(),
+    desc:    document.getElementById('pp_desc').value.trim(),
+    button:  document.getElementById('pp_btn').value.trim(),
+    enabled: document.getElementById('pp_enabled').checked
+  };
+  const wasEdit = !!editId;
+  if (!await withSaving('popupSaveBtn', () => saveItem('popups', editId, item))) return;
+  closeModal('popupModal'); renderPopups();
+  toast(wasEdit ? '公告已更新，網站已同步 ✓' : '公告已新增，網站已同步 ✓');
+}
+async function deletePopup(id) {
+  const p = data.popups.find(x => x.id === id);
+  if (!confirm(`確定刪除「${p.title}」嗎？\n（網站會立即移除）`)) return;
+  if (await deleteItem('popups', id)) { renderPopups(); toast('已刪除，網站已同步'); }
+}
+async function movePopup(id, dir) {
+  const i = data.popups.findIndex(x => x.id === id), j = i + dir;
+  if (i < 0 || j < 0 || j >= data.popups.length) return;
+  [data.popups[i], data.popups[j]] = [data.popups[j], data.popups[i]];
+  await persistOrder('popups');
 }
 
 /* ════════════════════════════════════
